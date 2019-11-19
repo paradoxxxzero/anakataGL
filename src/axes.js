@@ -2,6 +2,7 @@ import { Geometry, Line, LineBasicMaterial, Group } from 'three'
 
 export class Axes {
   constructor(hyperRenderer, u) {
+    this.width = 1.5
     this.hyperRenderer = hyperRenderer
     this.u = u || 1
     this.axes = [
@@ -29,7 +30,10 @@ export class Axes {
 
   init() {
     this.axes.forEach(axis => {
-      axis.material = new LineBasicMaterial({ color: axis.color })
+      axis.material = new LineBasicMaterial({
+        color: axis.color,
+        linewidth: this.width,
+      })
       axis.geometry = new Geometry()
       axis.geometry.vertices.push(this.hyperRenderer.toVector3(this.origin))
       axis.geometry.vertices.push(this.hyperRenderer.toVector3(axis.v))

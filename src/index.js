@@ -21,6 +21,7 @@ import {
 
 import { Axes } from './axes'
 import { HyperRenderer } from './hyperRenderer'
+import { Tesseract } from './tesseract'
 import { genVertices } from './vertices'
 import disc from './disc.png'
 
@@ -62,6 +63,8 @@ camera.add(pointLight)
 // scene.add(group)
 const axes = new Axes(hyperRenderer, 2)
 scene.add(axes.group)
+const tesseract = new Tesseract(hyperRenderer)
+scene.add(tesseract.group)
 //
 // var vertices = genVertices(4)
 //   .map(project)
@@ -121,6 +124,7 @@ function animate() {
     zw: 0.013,
   })
   axes.update()
+  tesseract.update()
 
   renderer.render(scene, camera)
 }
