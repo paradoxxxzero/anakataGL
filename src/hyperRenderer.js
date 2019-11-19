@@ -1,0 +1,69 @@
+import { Vector3 } from 'three'
+
+export class HyperRenderer {
+  constructor({ fov, w }) {
+    this.fov = fov || 1
+    this.w = w || 10 // Camera ana
+
+    this.rotation = {
+      xy: 0,
+      xz: 0,
+      xw: 0,
+      yz: 0,
+      yw: 0,
+      zw: 0,
+    }
+  }
+
+  to3d([xo, yo, zo, wo]) {
+    const [x, y, z, w] = this.rotatePoint([xo, yo, zo, wo])
+    const zoom = 1 + (w * this.fov) / this.w
+    return [x / zoom, y / zoom, z / zoom]
+  }
+
+  toVector3(coords) {
+    return new Vector3(...this.to3d(coords))
+  }
+
+  rotate(delta) {
+    Object.keys(this.rotation).forEach(k => {
+      this.rotation[k] += delta[k] || 0
+    })
+  }
+
+  rotatePoint([x, y, z, w]) {
+    const { xy, xz, xw, yz, yw, zw } = this.rotation
+    const cxy = Math.cos(xy)
+    const sxy = Math.sin(xy)
+    const cxz = Math.cos(xz)
+    const sxz = Math.sin(xz)
+    const cxw = Math.cos(xw)
+    const sxw = Math.sin(xw)
+    const cyz = Math.cos(yz)
+    const syz = Math.sin(yz)
+    const cyw = Math.cos(yw)
+    const syw = Math.sin(yw)
+    const czw = Math.cos(zw)
+    const szw = Math.sin(zw)
+
+    let t = x
+    x = x * cxy + y * sxy
+    y = y * cxy - t * sxy
+    t = x
+    x = x * cxz + z * sxz
+    z = z * cxz - t * sxz
+    t = x
+    x = x * cxw + w * sxw
+    w = w * cxw - t * sxw
+    t = y
+    y = y * cyz + z * syz
+    z = z * cyz - t * syz
+    t = y
+    y = y * cyw + w * syw
+    w = w * cyw - t * syw
+    t = z
+    z = z * czw + w * szw
+    w = w * czw - t * szw
+    return [x, y, z, w]
+  }
+}
