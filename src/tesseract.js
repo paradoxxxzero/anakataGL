@@ -10,9 +10,12 @@ import {
   Points,
   PointsMaterial,
   TextureLoader,
+  NoBlending,
+  NormalBlending,
   AdditiveBlending,
-  MultiplyBlending,
   SubtractiveBlending,
+  MultiplyBlending,
+  CustomBlending,
   DoubleSide,
   FrontSide,
   BackSide,
@@ -20,9 +23,21 @@ import {
 
 import disc from './disc.png'
 
+export const BLENDINGS = {
+  NoBlending,
+  NormalBlending,
+  AdditiveBlending,
+  MultiplyBlending,
+  SubtractiveBlending,
+  CustomBlending,
+}
+
 export class Tesseract {
   constructor(hyperRenderer) {
     this.group = new Group()
+    this.facesGroup = new Group()
+    this.edgesGroup = new Group()
+    this.verticesGroup = new Group()
     this.hyperRenderer = hyperRenderer
     this.cubes = [
       {
@@ -64,6 +79,8 @@ export class Tesseract {
     this.hasFaces = true
     this.hasEdges = true
     this.hasVertices = false
+    this.faceBlending = NormalBlending
+    this.faceOpacity = 0.5
     this.init()
   }
 
@@ -75,16 +92,18 @@ export class Tesseract {
         cube.geometry,
         new MeshLambertMaterial({
           color: cube.color,
-          opacity: 0.75,
-          transparent: true,
+          opacity: this.faceOpacity,
+          transparent: this.faceOpacity !== 1,
+          depthTest: this.faceOpacity === 1,
+          // depthTest: false,
           // premultipliedAlpha: true,
           // emissive: cube.color,
-          // blending: SubtractiveBlending,
+          blending: this.faceBlending,
         })
       )
       cube.mesh.material.side = DoubleSide
       if (this.hasFaces) {
-        this.group.add(cube.mesh)
+        this.facesGroup.add(cube.mesh)
       }
       cube.edges = new LineSegments(
         new EdgesGeometry(cube.geometry),
@@ -93,9 +112,7 @@ export class Tesseract {
           linewidth: 2,
         })
       )
-      if (this.hasEdges) {
-        this.group.add(cube.edges)
-      }
+      this.edgesGroup.add(cube.edges)
       cube.vertices = new Points(
         new BufferGeometry().setFromPoints(cube.geometry.vertices),
         new PointsMaterial({
@@ -105,10 +122,15 @@ export class Tesseract {
           alphaTest: 0.5,
         })
       )
-      if (this.hasVertices) {
-        this.group.add(cube.vertices)
-      }
+      this.verticesGroup.add(cube.vertices)
     })
+    this.group.add(this.facesGroup)
+    if (this.hasEdges) {
+      this.group.add(this.edgesGroup)
+    }
+    if (this.hasVertices) {
+      this.group.add(this.verticesGroup)
+    }
     this.update()
   }
 
@@ -123,6 +145,12 @@ export class Tesseract {
         cube.mesh.geometry.vertices[i].y = y
         cube.mesh.geometry.vertices[i].z = z
       })
+
+      cube.mesh.material.blending = this.faceBlending
+      cube.mesh.material.opacity = this.faceOpacity
+      cube.mesh.material.transparent = this.faceOpacity !== 1
+      cube.mesh.material.depthTest = this.faceOpacity === 1
+
       cube.mesh.geometry.verticesNeedUpdate = true
       cube.mesh.geometry.computeFlatVertexNormals()
       if (this.hasEdges) {
@@ -134,5 +162,35 @@ export class Tesseract {
         )
       }
     })
+  }
+
+  sortCells({ position }) {
+    this.cubes
+      .map(cube => {
+        const sums = cube.geometry.vertices.reduce(
+          (sum, { x, y, z }) => {
+            sum.x += x
+            sum.y += y
+            sum.z += z
+            return sum
+          },
+          { x: 0, y: 0, z: 0 }
+        )
+        const center = {
+          x: sums.x / cube.geometry.vertices.length,
+          y: sums.y / cube.geometry.vertices.length,
+          z: sums.z / cube.geometry.vertices.length,
+        }
+        const distance = Math.sqrt(
+          (position.x - center.x) ** 2 +
+            (position.y - center.y) ** 2 +
+            (position.z - center.z) ** 2
+        )
+        return { distance, cube }
+      })
+      .sort((a, b) => a.distance - b.distance)
+      .forEach(({ cube }, i) => {
+        cube.mesh.renderOrder = i
+      })
   }
 }

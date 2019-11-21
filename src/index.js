@@ -15,7 +15,7 @@ import Stats from 'stats.js'
 
 import { Axes } from './axes'
 import { HyperRenderer } from './hyperRenderer'
-import { Tesseract } from './tesseract'
+import { Tesseract, BLENDINGS } from './tesseract'
 
 class Main {
   constructor() {
@@ -56,6 +56,7 @@ class Main {
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.setScissorTest(true)
+    renderer.sortObjects = false
     return renderer
   }
   initCamera() {
@@ -109,24 +110,41 @@ class Main {
     gui
       .add(this.tesseract, 'hasVertices')
       .onChange(value =>
-        this.tesseract.cubes.forEach(({ vertices }) =>
-          this.tesseract.group[value ? 'add' : 'remove'](vertices)
+        this.tesseract.group[value ? 'add' : 'remove'](
+          this.tesseract.verticesGroup
         )
       )
     gui
       .add(this.tesseract, 'hasEdges')
       .onChange(value =>
-        this.tesseract.cubes.forEach(({ edges }) =>
-          this.tesseract.group[value ? 'add' : 'remove'](edges)
+        this.tesseract.group[value ? 'add' : 'remove'](
+          this.tesseract.edgesGroup
         )
       )
     gui
       .add(this.tesseract, 'hasFaces')
       .onChange(value =>
-        this.tesseract.cubes.forEach(({ mesh }) =>
-          this.tesseract.group[value ? 'add' : 'remove'](mesh)
+        this.tesseract.group[value ? 'add' : 'remove'](
+          this.tesseract.edgesGroup
         )
       )
+    gui.add(this.tesseract, 'faceOpacity', 0, 1)
+    function toNumber(value) {
+      this.object[this.property] = Number(value)
+    }
+    gui.add(this.tesseract, 'faceBlending', BLENDINGS).onChange(toNumber)
+    const mouseMove = this.onMouseMove.bind(this)
+    const click = this.onClick.bind(this)
+    gui.add({ selection: false }, 'selection').onChange(value => {
+      document[value ? 'addEventListener' : 'removeEventListener'](
+        'mousemove',
+        mouseMove
+      )
+      document[value ? 'addEventListener' : 'removeEventListener'](
+        'click',
+        click
+      )
+    })
     return gui
   }
 
@@ -136,9 +154,6 @@ class Main {
     document.body.style.overflow = 'hidden'
     document.body.appendChild(this.renderer.domElement)
     document.body.appendChild(this.stats.dom)
-    document.addEventListener('mousemove', this.onMouseMove.bind(this))
-    document.addEventListener('click', this.onClick.bind(this))
-
     window.addEventListener('resize', this.onResize.bind(this), false)
   }
 
@@ -197,6 +212,8 @@ class Main {
     requestAnimationFrame(this.render.bind(this))
     this.hyperRenderer.rotate(this.hyperRotation)
     this.tesseract.update()
+    this.tesseract.sortCells(this.camera)
+
     this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.setScissor(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.setClearColor(0x000000, 1)
