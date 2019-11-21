@@ -61,6 +61,9 @@ export class Tesseract {
     this.dotTexture = new TextureLoader().load(disc)
     this.cellSize = 100
     this.offset = 0.001
+    this.hasFaces = true
+    this.hasEdges = true
+    this.hasVertices = false
     this.init()
   }
 
@@ -80,6 +83,9 @@ export class Tesseract {
         })
       )
       cube.mesh.material.side = DoubleSide
+      if (this.hasFaces) {
+        this.group.add(cube.mesh)
+      }
       cube.edges = new LineSegments(
         new EdgesGeometry(cube.geometry),
         new LineBasicMaterial({
@@ -87,6 +93,9 @@ export class Tesseract {
           linewidth: 2,
         })
       )
+      if (this.hasEdges) {
+        this.group.add(cube.edges)
+      }
       cube.vertices = new Points(
         new BufferGeometry().setFromPoints(cube.geometry.vertices),
         new PointsMaterial({
@@ -96,9 +105,9 @@ export class Tesseract {
           alphaTest: 0.5,
         })
       )
-      this.group.add(cube.mesh)
-      this.group.add(cube.edges)
-      this.group.add(cube.vertices)
+      if (this.hasVertices) {
+        this.group.add(cube.vertices)
+      }
     })
     this.update()
   }
@@ -116,10 +125,14 @@ export class Tesseract {
       })
       cube.mesh.geometry.verticesNeedUpdate = true
       cube.mesh.geometry.computeFlatVertexNormals()
-      cube.edges.geometry = new EdgesGeometry(cube.geometry)
-      cube.vertices.geometry = new BufferGeometry().setFromPoints(
-        cube.geometry.vertices
-      )
+      if (this.hasEdges) {
+        cube.edges.geometry = new EdgesGeometry(cube.geometry)
+      }
+      if (this.hasVertices) {
+        cube.vertices.geometry = new BufferGeometry().setFromPoints(
+          cube.geometry.vertices
+        )
+      }
     })
   }
 }

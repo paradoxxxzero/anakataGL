@@ -73,7 +73,6 @@ class Main {
     const controls = new OrbitControls(this.camera, this.renderer.domElement)
     controls.minDistance = 2
     controls.maxDistance = 50
-    controls.maxPolarAngle = Math.PI / 2
     return controls
   }
   initLights() {
@@ -88,7 +87,6 @@ class Main {
     this.scene.add(tesseract.group)
     return tesseract
   }
-
   initAxes() {
     const axes = {
       scene: new Scene(),
@@ -108,6 +106,27 @@ class Main {
     Object.keys(this.hyperRotation).forEach(k => {
       gui.add(this.hyperRotation, k, 0, 100)
     })
+    gui
+      .add(this.tesseract, 'hasVertices')
+      .onChange(value =>
+        this.tesseract.cubes.forEach(({ vertices }) =>
+          this.tesseract.group[value ? 'add' : 'remove'](vertices)
+        )
+      )
+    gui
+      .add(this.tesseract, 'hasEdges')
+      .onChange(value =>
+        this.tesseract.cubes.forEach(({ edges }) =>
+          this.tesseract.group[value ? 'add' : 'remove'](edges)
+        )
+      )
+    gui
+      .add(this.tesseract, 'hasFaces')
+      .onChange(value =>
+        this.tesseract.cubes.forEach(({ mesh }) =>
+          this.tesseract.group[value ? 'add' : 'remove'](mesh)
+        )
+      )
     return gui
   }
 
