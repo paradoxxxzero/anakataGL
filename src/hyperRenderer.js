@@ -1,7 +1,7 @@
 import { Vector3 } from 'three'
 
 export class HyperRenderer {
-  constructor({ fov, w }) {
+  constructor(fov, w) {
     this.fov = fov || 1
     this.w = w || 10 // Camera ana
 
@@ -27,7 +27,7 @@ export class HyperRenderer {
 
   rotate(delta) {
     Object.keys(this.rotation).forEach(k => {
-      this.rotation[k] += delta[k] || 0
+      this.rotation[k] += (delta[k] || 0) / 1000
     })
   }
 

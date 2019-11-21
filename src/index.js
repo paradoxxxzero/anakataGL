@@ -1,133 +1,209 @@
-import { ConvexBufferGeometry } from 'three/examples/jsm/geometries/ConvexGeometry'
+import { GUI } from 'dat.gui'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import {
   Scene,
   PerspectiveCamera,
-  Mesh,
   WebGLRenderer,
   AmbientLight,
   PointLight,
-  AxesHelper,
-  TextureLoader,
-  BackSide,
+  Raycaster,
+  Vector2,
   FrontSide,
-  BufferGeometry,
-  Points,
-  Group,
-  MeshLambertMaterial,
-  PointsMaterial,
-  Vector3,
+  BackSide,
 } from 'three'
+import Stats from 'stats.js'
 
 import { Axes } from './axes'
 import { HyperRenderer } from './hyperRenderer'
 import { Tesseract } from './tesseract'
-import { genVertices } from './vertices'
-import disc from './disc.png'
 
-document.body.style.margin = 0
+class Main {
+  constructor() {
+    this.hyperRotation = {
+      xy: 0,
+      xz: 0,
+      xw: 0,
+      yz: 0,
+      yw: 0,
+      zw: 0,
+    }
 
-const scene = new Scene()
+    this.stats = new Stats()
+    this.scene = new Scene()
 
-const renderer = new WebGLRenderer({ antialias: true })
-renderer.setPixelRatio(window.devicePixelRatio)
-renderer.setSize(window.innerWidth, window.innerHeight)
-document.body.appendChild(renderer.domElement)
+    this.renderer = this.initRenderer()
+    this.hyperRenderer = new HyperRenderer(2, 5)
+    this.camera = this.initCamera()
+    this.initControls()
+    this.initLights()
 
-const hyperRenderer = new HyperRenderer(1, 5)
+    this.tesseract = this.initTesseract()
+    this.selectedCells = []
+    this.hoveredCell = null
+    this.rayCaster = new Raycaster()
+    this.axes = this.initAxes()
+    this.gui = this.initGui()
 
-const camera = new PerspectiveCamera(
-  40,
-  window.innerWidth / window.innerHeight,
-  1,
-  1000
-)
-camera.position.set(5, 5, 5)
-scene.add(camera)
+    this.setupDom()
+  }
 
-const controls = new OrbitControls(camera, renderer.domElement)
-controls.minDistance = 2
-controls.maxDistance = 50
-controls.maxPolarAngle = Math.PI / 2
-
-const ambientLight = new AmbientLight(0x222222)
-scene.add(ambientLight)
-
-const pointLight = new PointLight(0xffffff, 1)
-camera.add(pointLight)
-//
-// var loader = new TextureLoader()
-// var texture = loader.load(disc)
-//
-// group = new Group()
-// scene.add(group)
-const axes = new Axes(hyperRenderer, 2)
-scene.add(axes.group)
-const tesseract = new Tesseract(hyperRenderer)
-scene.add(tesseract.group)
-//
-// var vertices = genVertices(4)
-//   .map(project)
-//   .map(l => new Vector3(...l))
-//
-// var pointsMaterial = new PointsMaterial({
-//   color: 0x0080ff,
-//   map: texture,
-//   size: 1,
-//   alphaTest: 0.5,
-// })
-//
-// var pointsGeometry = new BufferGeometry().setFromPoints(vertices)
-//
-// var points = new Points(pointsGeometry, pointsMaterial)
-// group.add(points)
-//
-// // convex hull
-//
-// var meshMaterial = new MeshLambertMaterial({
-//   color: 0x00ffff,
-//   opacity: 0.5,
-//   transparent: true,
-// })
-//
-// var meshGeometry = new ConvexBufferGeometry(vertices)
-//
-// var mesh = new Mesh(meshGeometry, meshMaterial)
-// mesh.material.side = BackSide // back faces
-// mesh.renderOrder = 0
-// group.add(mesh)
-//
-// mesh = new Mesh(meshGeometry, meshMaterial.clone())
-// mesh.material.side = FrontSide // front faces
-// mesh.renderOrder = 1
-// group.add(mesh)
-
-window.addEventListener(
-  'resize',
-  () => {
-    camera.aspect = window.innerWidth / window.innerHeight
-    camera.updateProjectionMatrix()
-
+  initRenderer() {
+    const renderer = new WebGLRenderer({
+      antialias: true,
+      alpha: true,
+    })
+    renderer.autoClear = false
+    renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
-  },
-  false
-)
+    renderer.setScissorTest(true)
+    return renderer
+  }
+  initCamera() {
+    const camera = new PerspectiveCamera(
+      80,
+      window.innerWidth / window.innerHeight,
+      1,
+      50
+    )
+    camera.position.set(5, 5, 5)
+    this.scene.add(camera)
+    return camera
+  }
+  initControls() {
+    const controls = new OrbitControls(this.camera, this.renderer.domElement)
+    controls.minDistance = 2
+    controls.maxDistance = 50
+    controls.maxPolarAngle = Math.PI / 2
+    return controls
+  }
+  initLights() {
+    const ambientLight = new AmbientLight(0x222222)
+    this.scene.add(ambientLight)
 
-function animate() {
-  requestAnimationFrame(animate)
-  hyperRenderer.rotate({
-    xy: 0.002,
-    xz: 0.003,
-    xw: 0.005,
-    yz: 0.007,
-    yw: 0.011,
-    zw: 0.013,
-  })
-  axes.update()
-  tesseract.update()
+    const pointLight = new PointLight(0xffffff, 1)
+    this.camera.add(pointLight)
+  }
+  initTesseract() {
+    const tesseract = new Tesseract(this.hyperRenderer)
+    this.scene.add(tesseract.group)
+    return tesseract
+  }
 
-  renderer.render(scene, camera)
+  initAxes() {
+    const axes = {
+      scene: new Scene(),
+      camera: new PerspectiveCamera(80, 1, 1, 1000),
+      size: 100,
+      axes: new Axes(this.hyperRenderer, 2),
+    }
+
+    axes.scene.add(axes.axes.group)
+    axes.scene.add(axes.camera)
+    return axes
+  }
+
+  initGui() {
+    const gui = new GUI()
+    gui.add(this.tesseract, 'cellSize', 0, 100)
+    Object.keys(this.hyperRotation).forEach(k => {
+      gui.add(this.hyperRotation, k, 0, 100)
+    })
+    return gui
+  }
+
+  setupDom() {
+    this.mouse = new Vector2()
+    document.body.style.margin = 0
+    document.body.style.overflow = 'hidden'
+    document.body.appendChild(this.renderer.domElement)
+    document.body.appendChild(this.stats.dom)
+    document.addEventListener('mousemove', this.onMouseMove.bind(this))
+    document.addEventListener('click', this.onClick.bind(this))
+
+    window.addEventListener('resize', this.onResize.bind(this), false)
+  }
+
+  onMouseMove({ clientX, clientY }) {
+    this.mouse.x = (clientX / window.innerWidth) * 2 - 1
+    this.mouse.y = (clientY / window.innerWidth) * 2 - 1
+    this.rayCaster.setFromCamera(this.mouse, this.camera)
+    const intersected = this.rayCaster.intersectObjects(
+      this.tesseract.cubes.map(cube => cube.mesh)
+    )
+    if (intersected.length) {
+      this.hoveredCell = intersected[0].object
+    } else {
+      this.hoveredCell = null
+    }
+    this.syncCells()
+  }
+
+  onClick() {
+    this.rayCaster.setFromCamera(this.mouse, this.camera)
+    const intersected = this.rayCaster.intersectObjects(
+      this.tesseract.cubes.map(cube => cube.mesh)
+    )
+    if (intersected.length) {
+      const cube = intersected[0].object
+      if (this.selectedCells.includes(cube)) {
+        this.selectedCells = this.selectedCells.filter(cell => cell !== cube)
+      } else {
+        this.selectedCells = [...this.selectedCells, cube]
+      }
+    }
+    this.syncCells()
+  }
+
+  syncCells() {
+    this.tesseract.cubes.forEach(cube => {
+      cube.mesh.material.opacity =
+        cube.mesh === this.hoveredCell
+          ? 0
+          : this.selectedCells.length
+          ? this.selectedCells.includes(cube.mesh)
+            ? 0.8
+            : 0.4
+          : 0.75
+    })
+  }
+
+  onResize() {
+    this.camera.aspect = window.innerWidth / window.innerHeight
+    this.camera.updateProjectionMatrix()
+
+    this.renderer.setSize(window.innerWidth, window.innerHeight)
+  }
+
+  render() {
+    requestAnimationFrame(this.render.bind(this))
+    this.hyperRenderer.rotate(this.hyperRotation)
+    this.tesseract.update()
+    this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
+    this.renderer.setScissor(0, 0, window.innerWidth, window.innerHeight)
+    this.renderer.setClearColor(0x000000, 1)
+    this.renderer.clear()
+    this.renderer.render(this.scene, this.camera)
+
+    this.axes.camera.position.copy(this.camera.position)
+    this.axes.camera.quaternion.copy(this.camera.quaternion)
+
+    this.axes.axes.update()
+    this.renderer.setScissor(
+      window.innerWidth - this.axes.size,
+      0,
+      this.axes.size,
+      this.axes.size
+    )
+    this.renderer.setViewport(
+      window.innerWidth - this.axes.size,
+      0,
+      this.axes.size,
+      this.axes.size
+    )
+    this.renderer.render(this.axes.scene, this.axes.camera)
+    this.stats.update()
+  }
 }
-animate()
 
-window.axes = axes
+window.anakata = new Main()
+window.anakata.render()
