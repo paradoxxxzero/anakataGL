@@ -13,7 +13,7 @@ import Stats from 'stats.js'
 
 import { Axes } from './axes'
 import { HyperRenderer } from './hyperRenderer'
-import { Tesseract, BLENDINGS } from './tesseract'
+import { HyperMesh, BLENDINGS } from './hyperMesh'
 
 class Main {
   constructor() {
@@ -35,7 +35,7 @@ class Main {
     this.initControls()
     this.initLights()
 
-    this.tesseract = this.initTesseract()
+    this.hyperMesh = this.initHyperMesh()
     this.selectedCells = []
     this.hoveredCell = null
     this.rayCaster = new Raycaster()
@@ -80,10 +80,10 @@ class Main {
     const pointLight = new PointLight(0xffffff, 1)
     this.camera.add(pointLight)
   }
-  initTesseract() {
-    const tesseract = new Tesseract(this.hyperRenderer)
-    this.scene.add(tesseract.group)
-    return tesseract
+  initHyperMesh() {
+    const hyperMesh = new HyperMesh(this.hyperRenderer)
+    this.scene.add(hyperMesh.group)
+    return hyperMesh
   }
   initAxes() {
     const axes = {
@@ -100,56 +100,50 @@ class Main {
 
   initGui() {
     const gui = new GUI()
-    gui.add(this.tesseract, 'cellSize', 0, 100)
+    gui.add(this.hyperMesh, 'cellSize', 0, 100)
     Object.keys(this.hyperRotation).forEach(k => {
       gui.add(this.hyperRotation, k, 0, 50)
     })
     gui
-      .add(this.tesseract, 'hasVertices')
+      .add(this.hyperMesh, 'hasVertices')
       .onChange(value =>
-        this.tesseract.group[value ? 'add' : 'remove'](
-          this.tesseract.verticesGroup
-        )
+        this.hyperMesh.group[value ? 'add' : 'remove'](this.hyperMesh.vertices)
       )
     gui
-      .add(this.tesseract, 'hasEdges')
+      .add(this.hyperMesh, 'hasEdges')
       .onChange(value =>
-        this.tesseract.group[value ? 'add' : 'remove'](
-          this.tesseract.edgesGroup
-        )
+        this.hyperMesh.group[value ? 'add' : 'remove'](this.hyperMesh.edges)
       )
     gui
-      .add(this.tesseract, 'hasFaces')
+      .add(this.hyperMesh, 'hasFaces')
       .onChange(value =>
-        this.tesseract.group[value ? 'add' : 'remove'](
-          this.tesseract.edgesGroup
-        )
+        this.hyperMesh.group[value ? 'add' : 'remove'](this.hyperMesh.mesh)
       )
-    gui.add(this.tesseract, 'faceOpacity', 0, 1)
+    gui.add(this.hyperMesh, 'faceOpacity', 0, 1)
     function toNumber(value) {
       // eslint-disable-next-line no-invalid-this
       this.object[this.property] = Number(value)
     }
-    gui.add(this.tesseract, 'faceBlending', BLENDINGS).onChange(toNumber)
-    const mouseMove = this.onMouseMove.bind(this)
-    const click = this.onClick.bind(this)
-    gui.add({ selection: false }, 'selection').onChange(value => {
-      document[value ? 'addEventListener' : 'removeEventListener'](
-        'mousemove',
-        mouseMove,
-        false
-      )
-      document[value ? 'addEventListener' : 'removeEventListener'](
-        'click',
-        click,
-        false
-      )
-      if (!value) {
-        this.hoveredCell = null
-        this.selectedCells = []
-        this.syncCells()
-      }
-    })
+    gui.add(this.hyperMesh, 'faceBlending', BLENDINGS).onChange(toNumber)
+    // const mouseMove = this.onMouseMove.bind(this)
+    // const click = this.onClick.bind(this)
+    // gui.add({ selection: false }, 'selection').onChange(value => {
+    //   document[value ? 'addEventListener' : 'removeEventListener'](
+    //     'mousemove',
+    //     mouseMove,
+    //     false
+    //   )
+    //   document[value ? 'addEventListener' : 'removeEventListener'](
+    //     'click',
+    //     click,
+    //     false
+    //   )
+    //   if (!value) {
+    //     this.hoveredCell = null
+    //     this.selectedCells = []
+    //     this.syncCells()
+    //   }
+    // })
     return gui
   }
 
@@ -161,49 +155,49 @@ class Main {
     document.body.appendChild(this.stats.dom)
     window.addEventListener('resize', this.onResize.bind(this), false)
   }
-
-  onMouseMove({ clientX, clientY }) {
-    this.mouse.x = (clientX / window.innerWidth) * 2 - 1
-    this.mouse.y = -(clientY / window.innerHeight) * 2 + 1
-    this.rayCaster.setFromCamera(this.mouse, this.camera)
-    const intersected = this.rayCaster.intersectObjects(
-      this.tesseract.cubes.map(cube => cube.mesh)
-    )
-    if (intersected.length) {
-      this.hoveredCell = intersected[0].object
-    } else {
-      this.hoveredCell = null
-    }
-    this.syncCells()
-  }
-
-  onClick() {
-    this.rayCaster.setFromCamera(this.mouse, this.camera)
-    const intersected = this.rayCaster.intersectObjects(
-      this.tesseract.cubes.map(cube => cube.mesh)
-    )
-    if (intersected.length) {
-      const cube = intersected[0].object
-      if (this.selectedCells.includes(cube)) {
-        this.selectedCells = this.selectedCells.filter(cell => cell !== cube)
-      } else {
-        this.selectedCells = [...this.selectedCells, cube]
-      }
-    }
-    this.syncCells()
-  }
-
-  syncCells() {
-    this.tesseract.cubes.forEach(cube => {
-      cube.mesh.material.emissive.setHex(
-        cube.mesh === this.hoveredCell
-          ? 0xffffff
-          : this.selectedCells.includes(cube.mesh)
-          ? cube.color
-          : 0
-      )
-    })
-  }
+  //
+  // onMouseMove({ clientX, clientY }) {
+  //   this.mouse.x = (clientX / window.innerWidth) * 2 - 1
+  //   this.mouse.y = -(clientY / window.innerHeight) * 2 + 1
+  //   this.rayCaster.setFromCamera(this.mouse, this.camera)
+  //   const intersected = this.rayCaster.intersectObjects(
+  //     this.cube.cubes.map(cube => cube.mesh)
+  //   )
+  //   if (intersected.length) {
+  //     this.hoveredCell = intersected[0].object
+  //   } else {
+  //     this.hoveredCell = null
+  //   }
+  //   this.syncCells()
+  // }
+  //
+  // onClick() {
+  //   this.rayCaster.setFromCamera(this.mouse, this.camera)
+  //   const intersected = this.rayCaster.intersectObjects(
+  //     this.cube.cubes.map(cube => cube.mesh)
+  //   )
+  //   if (intersected.length) {
+  //     const cube = intersected[0].object
+  //     if (this.selectedCells.includes(cube)) {
+  //       this.selectedCells = this.selectedCells.filter(cell => cell !== cube)
+  //     } else {
+  //       this.selectedCells = [...this.selectedCells, cube]
+  //     }
+  //   }
+  //   this.syncCells()
+  // }
+  //
+  // syncCells() {
+  //   this.cube.cubes.forEach(cube => {
+  //     cube.mesh.material.emissive.setHex(
+  //       cube.mesh === this.hoveredCell
+  //         ? 0xffffff
+  //         : this.selectedCells.includes(cube.mesh)
+  //         ? cube.color
+  //         : 0
+  //     )
+  //   })
+  // }
 
   onResize() {
     this.camera.aspect = window.innerWidth / window.innerHeight
@@ -215,7 +209,7 @@ class Main {
   render() {
     requestAnimationFrame(this.render.bind(this))
     this.hyperRenderer.rotate(this.hyperRotation)
-    this.tesseract.update()
+    this.hyperMesh.update()
 
     this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.setScissor(0, 0, window.innerWidth, window.innerHeight)
