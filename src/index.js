@@ -8,8 +8,6 @@ import {
   PointLight,
   Raycaster,
   Vector2,
-  FrontSide,
-  BackSide,
 } from 'three'
 import Stats from 'stats.js'
 
@@ -25,7 +23,7 @@ class Main {
       xw: 0,
       yz: 0,
       yw: 0,
-      zw: 0,
+      zw: 10,
     }
 
     this.stats = new Stats()
@@ -56,7 +54,6 @@ class Main {
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
     renderer.setScissorTest(true)
-    renderer.sortObjects = false
     return renderer
   }
   initCamera() {
@@ -64,7 +61,7 @@ class Main {
       80,
       window.innerWidth / window.innerHeight,
       1,
-      50
+      100
     )
     camera.position.set(5, 5, 5)
     this.scene.add(camera)
@@ -72,7 +69,7 @@ class Main {
   }
   initControls() {
     const controls = new OrbitControls(this.camera, this.renderer.domElement)
-    controls.minDistance = 2
+    controls.minDistance = 5
     controls.maxDistance = 50
     return controls
   }
@@ -105,7 +102,7 @@ class Main {
     const gui = new GUI()
     gui.add(this.tesseract, 'cellSize', 0, 100)
     Object.keys(this.hyperRotation).forEach(k => {
-      gui.add(this.hyperRotation, k, 0, 100)
+      gui.add(this.hyperRotation, k, 0, 50)
     })
     gui
       .add(this.tesseract, 'hasVertices')
@@ -130,6 +127,7 @@ class Main {
       )
     gui.add(this.tesseract, 'faceOpacity', 0, 1)
     function toNumber(value) {
+      // eslint-disable-next-line no-invalid-this
       this.object[this.property] = Number(value)
     }
     gui.add(this.tesseract, 'faceBlending', BLENDINGS).onChange(toNumber)
@@ -138,12 +136,19 @@ class Main {
     gui.add({ selection: false }, 'selection').onChange(value => {
       document[value ? 'addEventListener' : 'removeEventListener'](
         'mousemove',
-        mouseMove
+        mouseMove,
+        false
       )
       document[value ? 'addEventListener' : 'removeEventListener'](
         'click',
-        click
+        click,
+        false
       )
+      if (!value) {
+        this.hoveredCell = null
+        this.selectedCells = []
+        this.syncCells()
+      }
     })
     return gui
   }
@@ -159,7 +164,7 @@ class Main {
 
   onMouseMove({ clientX, clientY }) {
     this.mouse.x = (clientX / window.innerWidth) * 2 - 1
-    this.mouse.y = (clientY / window.innerWidth) * 2 - 1
+    this.mouse.y = -(clientY / window.innerHeight) * 2 + 1
     this.rayCaster.setFromCamera(this.mouse, this.camera)
     const intersected = this.rayCaster.intersectObjects(
       this.tesseract.cubes.map(cube => cube.mesh)
@@ -190,14 +195,13 @@ class Main {
 
   syncCells() {
     this.tesseract.cubes.forEach(cube => {
-      cube.mesh.material.opacity =
+      cube.mesh.material.emissive.setHex(
         cube.mesh === this.hoveredCell
-          ? 0
-          : this.selectedCells.length
-          ? this.selectedCells.includes(cube.mesh)
-            ? 0.8
-            : 0.4
-          : 0.75
+          ? 0xffffff
+          : this.selectedCells.includes(cube.mesh)
+          ? cube.color
+          : 0
+      )
     })
   }
 
@@ -212,7 +216,6 @@ class Main {
     requestAnimationFrame(this.render.bind(this))
     this.hyperRenderer.rotate(this.hyperRotation)
     this.tesseract.update()
-    this.tesseract.sortCells(this.camera)
 
     this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.setScissor(0, 0, window.innerWidth, window.innerHeight)

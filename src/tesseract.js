@@ -17,8 +17,6 @@ import {
   MultiplyBlending,
   CustomBlending,
   DoubleSide,
-  FrontSide,
-  BackSide,
 } from 'three'
 
 import disc from './disc.png'
@@ -94,8 +92,6 @@ export class Tesseract {
           color: cube.color,
           opacity: this.faceOpacity,
           transparent: this.faceOpacity !== 1,
-          depthTest: this.faceOpacity === 1,
-          // depthTest: false,
           // premultipliedAlpha: true,
           // emissive: cube.color,
           blending: this.faceBlending,
@@ -140,57 +136,47 @@ export class Tesseract {
       const vertices = new BoxGeometry(two, two, two).vertices
         .map(({ x, y, z }) => cube.shift(x, y, z))
         .map(this.hyperRenderer.toVector3.bind(this.hyperRenderer))
+
+      const sums = vertices.reduce(
+        (sum, { x, y, z }) => {
+          sum.x += x
+          sum.y += y
+          sum.z += z
+          return sum
+        },
+        { x: 0, y: 0, z: 0 }
+      )
+
+      cube.mesh.position.x = sums.x / vertices.length
+      cube.mesh.position.y = sums.y / vertices.length
+      cube.mesh.position.z = sums.z / vertices.length
+
       vertices.forEach(({ x, y, z }, i) => {
-        cube.mesh.geometry.vertices[i].x = x
-        cube.mesh.geometry.vertices[i].y = y
-        cube.mesh.geometry.vertices[i].z = z
+        cube.mesh.geometry.vertices[i].x = x - cube.mesh.position.x
+        cube.mesh.geometry.vertices[i].y = y - cube.mesh.position.y
+        cube.mesh.geometry.vertices[i].z = z - cube.mesh.position.z
       })
 
       cube.mesh.material.blending = this.faceBlending
       cube.mesh.material.opacity = this.faceOpacity
       cube.mesh.material.transparent = this.faceOpacity !== 1
-      cube.mesh.material.depthTest = this.faceOpacity === 1
 
       cube.mesh.geometry.verticesNeedUpdate = true
       cube.mesh.geometry.computeFlatVertexNormals()
       if (this.hasEdges) {
+        cube.edges.position.x = cube.mesh.position.x
+        cube.edges.position.y = cube.mesh.position.y
+        cube.edges.position.z = cube.mesh.position.z
         cube.edges.geometry = new EdgesGeometry(cube.geometry)
       }
       if (this.hasVertices) {
+        cube.vertices.position.x = cube.mesh.position.x
+        cube.vertices.position.y = cube.mesh.position.y
+        cube.vertices.position.z = cube.mesh.position.z
         cube.vertices.geometry = new BufferGeometry().setFromPoints(
           cube.geometry.vertices
         )
       }
     })
-  }
-
-  sortCells({ position }) {
-    this.cubes
-      .map(cube => {
-        const sums = cube.geometry.vertices.reduce(
-          (sum, { x, y, z }) => {
-            sum.x += x
-            sum.y += y
-            sum.z += z
-            return sum
-          },
-          { x: 0, y: 0, z: 0 }
-        )
-        const center = {
-          x: sums.x / cube.geometry.vertices.length,
-          y: sums.y / cube.geometry.vertices.length,
-          z: sums.z / cube.geometry.vertices.length,
-        }
-        const distance = Math.sqrt(
-          (position.x - center.x) ** 2 +
-            (position.y - center.y) ** 2 +
-            (position.z - center.z) ** 2
-        )
-        return { distance, cube }
-      })
-      .sort((a, b) => a.distance - b.distance)
-      .forEach(({ cube }, i) => {
-        cube.mesh.renderOrder = i
-      })
   }
 }
