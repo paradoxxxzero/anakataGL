@@ -106,25 +106,27 @@ class Main {
     })
     gui
       .add(this.hyperMesh, 'hasVertices')
-      .onChange(value =>
-        this.hyperMesh.group[value ? 'add' : 'remove'](this.hyperMesh.vertices)
-      )
+      .onChange(this.hyperMesh.toggleVertices.bind(this.hyperMesh))
     gui
       .add(this.hyperMesh, 'hasEdges')
-      .onChange(value =>
-        this.hyperMesh.group[value ? 'add' : 'remove'](this.hyperMesh.edges)
-      )
+      .onChange(this.hyperMesh.toggleEdges.bind(this.hyperMesh))
     gui
       .add(this.hyperMesh, 'hasFaces')
-      .onChange(value =>
-        this.hyperMesh.group[value ? 'add' : 'remove'](this.hyperMesh.mesh)
-      )
+      .onChange(this.hyperMesh.toggleFaces.bind(this.hyperMesh))
+
     gui.add(this.hyperMesh, 'faceOpacity', 0, 1)
     function toNumber(value) {
       // eslint-disable-next-line no-invalid-this
       this.object[this.property] = Number(value)
     }
     gui.add(this.hyperMesh, 'faceBlending', BLENDINGS).onChange(toNumber)
+    const guiDebug = gui.addFolder('debug')
+    guiDebug
+      .add(this.hyperMesh, 'vertexNormals')
+      .onChange(this.hyperMesh.toggleVertexNormals.bind(this.hyperMesh))
+    guiDebug
+      .add(this.hyperMesh, 'faceNormals')
+      .onChange(this.hyperMesh.toggleFaceNormals.bind(this.hyperMesh))
     // const mouseMove = this.onMouseMove.bind(this)
     // const click = this.onClick.bind(this)
     // gui.add({ selection: false }, 'selection').onChange(value => {
@@ -155,7 +157,7 @@ class Main {
     document.body.appendChild(this.stats.dom)
     window.addEventListener('resize', this.onResize.bind(this), false)
   }
-  //
+
   // onMouseMove({ clientX, clientY }) {
   //   this.mouse.x = (clientX / window.innerWidth) * 2 - 1
   //   this.mouse.y = -(clientY / window.innerHeight) * 2 + 1
