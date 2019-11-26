@@ -12,8 +12,9 @@ import {
 import Stats from 'stats.js'
 
 import { Axes } from './axes'
-import { HyperRenderer } from './hyperRenderer'
 import { HyperMesh, BLENDINGS } from './hyperMesh'
+import { HyperRenderer } from './hyperRenderer'
+import { toNumber } from './utils'
 
 class Main {
   constructor() {
@@ -100,34 +101,33 @@ class Main {
 
   initGui() {
     const gui = new GUI()
-    gui.add(this.hyperMesh, 'cellSize', 0, 100)
-    Object.keys(this.hyperRotation).forEach(k => {
-      gui.add(this.hyperRotation, k, 0, 50)
-    })
-    gui
-      .add(this.hyperMesh, 'hasVertices')
-      .onChange(this.hyperMesh.toggleVertices.bind(this.hyperMesh))
-    gui
-      .add(this.hyperMesh, 'hasEdges')
-      .onChange(this.hyperMesh.toggleEdges.bind(this.hyperMesh))
-    gui
-      .add(this.hyperMesh, 'hasFaces')
-      .onChange(this.hyperMesh.toggleFaces.bind(this.hyperMesh))
 
-    gui.add(this.hyperMesh, 'faceOpacity', 0, 1)
-    function toNumber(value) {
-      // eslint-disable-next-line no-invalid-this
-      this.object[this.property] = Number(value)
-    }
-    gui.add(this.hyperMesh, 'faceBlending', BLENDINGS).onChange(toNumber)
-    const guiDebug = gui.addFolder('debug')
-    guiDebug
-      .add(this.hyperMesh, 'vertexNormals')
-      .onChange(this.hyperMesh.toggleVertexNormals.bind(this.hyperMesh))
-    guiDebug
-      .add(this.hyperMesh, 'faceNormals')
-      .onChange(this.hyperMesh.toggleFaceNormals.bind(this.hyperMesh))
-    // const mouseMove = this.onMouseMove.bind(this)
+    const rot = gui.addFolder('4d rotation')
+    Object.keys(this.hyperRotation).forEach(k => {
+      rot.add(this.hyperRotation, k, 0, 50)
+    })
+    rot.open()
+
+    const cell = gui.addFolder('Cell')
+    cell.add(this.hyperMesh, 'hasCells')
+    cell.add(this.hyperMesh, 'cellSize', 0, 100)
+    cell.add(this.hyperMesh, 'cellOpacity', 0, 1)
+    cell.add(this.hyperMesh, 'cellBlending', BLENDINGS).onChange(toNumber)
+    cell.add(this.hyperMesh, 'cellDepthWrite')
+    cell.open()
+
+    const edge = gui.addFolder('Edge')
+    edge.add(this.hyperMesh, 'hasEdges')
+    edge.add(this.hyperMesh, 'edgeOpacity', 0, 1)
+    edge.add(this.hyperMesh, 'edgeBlending', BLENDINGS).onChange(toNumber)
+    edge.add(this.hyperMesh, 'edgeWidth', 0, 5)
+    edge.add(this.hyperMesh, 'edgeDepthWrite')
+    edge.open()
+
+    gui.add(this.hyperMesh, 'hasVertices')
+    const guiDebug = gui.addFolder('Debug')
+    guiDebug.add(this.hyperMesh, 'vertexNormals')
+    guiDebug.add(this.hyperMesh, 'faceNormals')
     // const click = this.onClick.bind(this)
     // gui.add({ selection: false }, 'selection').onChange(value => {
     //   document[value ? 'addEventListener' : 'removeEventListener'](
