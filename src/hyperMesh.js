@@ -52,19 +52,18 @@ export class HyperMesh {
     this.hasCells = true
     this.hasEdges = true
     this.hasVertices = false
-    this.cellBlending = NormalBlending
-    this.cellOpacity = 0.5
-    this.cellDepthWrite = true
-    this.edgeBlending = NormalBlending
-    this.edgeOpacity = 1
+    this.cellBlending = AdditiveBlending
+    this.cellOpacity = 0.1
+    this.cellDepthWrite = !true
+    this.edgeBlending = AdditiveBlending
+    this.edgeOpacity = 0.04
     this.edgeWidth = 2
-    this.edgeDepthWrite = true
+    this.edgeDepthWrite = !true
 
     this.vertexNormals = false
     this.faceNormals = false
 
     this.object = 'hexadecachoron'
-    this.cells = []
     this.helpers = {
       faceNormals: [],
       vertexNormals: [],
@@ -75,6 +74,9 @@ export class HyperMesh {
   update() {
     // eslint-disable-next-line import/namespace
     const object = meshes[this.object]
+    if ((object.scale || 1) !== this.group.scale) {
+      this.group.scale.setScalar(object.scale || 1)
+    }
     object.cells.forEach((cell, cellIndex) => {
       if (!this.cellGroup.children[cellIndex]) {
         this.cellGroup.add(new Mesh(new Geometry(), new MeshLambertMaterial()))

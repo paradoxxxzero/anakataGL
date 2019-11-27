@@ -22,9 +22,9 @@ class Main {
     this.hyperRotation = {
       xy: 0,
       xz: 0,
-      xw: 0,
+      xw: 10,
       yz: 0,
-      yw: 0,
+      yw: 10,
       zw: 10,
     }
 

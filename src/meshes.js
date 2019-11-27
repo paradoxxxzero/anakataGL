@@ -101,6 +101,7 @@ export const pentachoron = {
   ],
   colors: [0xff6188, 0xa9dc76, 0xffd866, 0xfc9867, 0xab9df2],
   backgroundColor: 0x000000,
+  scale: 2.5,
 }
 
 export const hexadecachoron = {
@@ -187,4 +188,5 @@ export const hexadecachoron = {
     0xfcfcfa,
   ],
   backgroundColor: 0x222222,
+  scale: 2.5,
 }
