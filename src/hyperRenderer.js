@@ -27,7 +27,8 @@ export class HyperRenderer {
 
   rotate(delta) {
     Object.keys(this.rotation).forEach(k => {
-      this.rotation[k] += (delta[k] || 0) / 1000
+      this.rotation[k] =
+        (this.rotation[k] + (delta[k] || 0) / 1000) % (2 * Math.PI)
     })
   }
 

@@ -14,6 +14,7 @@ import Stats from 'stats.js'
 import { Axes } from './axes'
 import { HyperMesh, BLENDINGS } from './hyperMesh'
 import { HyperRenderer } from './hyperRenderer'
+import * as meshes from './meshes'
 import { toNumber } from './utils'
 
 class Main {
@@ -31,7 +32,7 @@ class Main {
     this.scene = new Scene()
 
     this.renderer = this.initRenderer()
-    this.hyperRenderer = new HyperRenderer(2, 5)
+    this.hyperRenderer = new HyperRenderer(1.5, 5)
     this.camera = this.initCamera()
     this.initControls()
     this.initLights()
@@ -59,7 +60,7 @@ class Main {
   }
   initCamera() {
     const camera = new PerspectiveCamera(
-      80,
+      (this.hyperRenderer.fov / Math.PI) * 180,
       window.innerWidth / window.innerHeight,
       1,
       100
@@ -70,7 +71,7 @@ class Main {
   }
   initControls() {
     const controls = new OrbitControls(this.camera, this.renderer.domElement)
-    controls.minDistance = 5
+    controls.minDistance = 2
     controls.maxDistance = 50
     return controls
   }
@@ -89,7 +90,12 @@ class Main {
   initAxes() {
     const axes = {
       scene: new Scene(),
-      camera: new PerspectiveCamera(80, 1, 1, 1000),
+      camera: new PerspectiveCamera(
+        (this.hyperRenderer.fov / Math.PI) * 180,
+        1,
+        1,
+        1000
+      ),
       size: 100,
       axes: new Axes(this.hyperRenderer, 2),
     }
@@ -101,12 +107,24 @@ class Main {
 
   initGui() {
     const gui = new GUI()
-
+    gui
+      .add(this.hyperMesh, 'object', Object.keys(meshes))
+      .onChange(this.hyperMesh.reset.bind(this.hyperMesh))
+    gui.add(this.hyperRenderer, 'fov', 0, Math.PI)
+    gui.add(this.camera, 'fov', 0, Math.PI).onChange(value => {
+      this.axes.camera.fov = this.camera.fov = (value / Math.PI) * 180
+      this.camera.updateProjectionMatrix()
+      this.axes.camera.updateProjectionMatrix()
+    })
     const rot = gui.addFolder('4d rotation')
     Object.keys(this.hyperRotation).forEach(k => {
-      rot.add(this.hyperRotation, k, 0, 50)
+      rot.add(this.hyperRenderer.rotation, k, 0, 2 * Math.PI).listen()
     })
-    rot.open()
+    const rotSpeed = gui.addFolder('4d rotation speed')
+    Object.keys(this.hyperRotation).forEach(k => {
+      rotSpeed.add(this.hyperRotation, k, 0, 50)
+    })
+    rotSpeed.open()
 
     const cell = gui.addFolder('Cell')
     cell.add(this.hyperMesh, 'hasCells')
@@ -215,7 +233,11 @@ class Main {
 
     this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.setScissor(0, 0, window.innerWidth, window.innerHeight)
-    this.renderer.setClearColor(0x000000, 1)
+    this.renderer.setClearColor(
+      // eslint-disable-next-line import/namespace
+      meshes[this.hyperMesh.object].backgroundColor,
+      1
+    )
     this.renderer.clear()
     this.renderer.render(this.scene, this.camera)
 

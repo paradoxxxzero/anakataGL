@@ -14,11 +14,9 @@ import {
   SubtractiveBlending,
   MultiplyBlending,
   CustomBlending,
-  BackSide,
   DoubleSide,
   Color,
   FaceColors,
-  VertexColors,
   Vector3,
   Face3,
   FaceNormalsHelper,
@@ -26,6 +24,7 @@ import {
 } from 'three'
 
 import disc from './disc.png'
+import * as meshes from './meshes'
 
 export const BLENDINGS = {
   NoBlending,
@@ -34,98 +33,6 @@ export const BLENDINGS = {
   MultiplyBlending,
   SubtractiveBlending,
   CustomBlending,
-}
-
-const cube = {
-  vertices: [
-    [1, 1, 1, 1],
-    [1, 1, -1, 1],
-    [1, -1, -1, 1],
-    [1, -1, 1, 1],
-    [-1, 1, 1, 1],
-    [-1, 1, -1, 1],
-    [-1, -1, -1, 1],
-    [-1, -1, 1, 1],
-  ],
-  faces: [
-    [0, 1, 2, 3],
-    [0, 4, 5, 1],
-    [0, 3, 7, 4],
-    [3, 2, 6, 7],
-    [1, 5, 6, 2],
-    [4, 7, 6, 5],
-  ],
-}
-
-const tesseract = {
-  vertices: [
-    [1, 1, 1, 1], // 0
-    [1, 1, -1, 1], // 1
-    [1, -1, -1, 1], // 2
-    [1, -1, 1, 1], // 3
-    [-1, 1, 1, 1], // 4
-    [-1, 1, -1, 1], // 5
-    [-1, -1, -1, 1], // 6
-    [-1, -1, 1, 1], // 7
-    [1, 1, 1, -1], // 8
-    [1, 1, -1, -1], // 9
-    [1, -1, -1, -1], // 10
-    [1, -1, 1, -1], // 11
-    [-1, 1, 1, -1], // 12
-    [-1, 1, -1, -1], // 13
-    [-1, -1, -1, -1], // 14
-    [-1, -1, 1, -1], // 15
-  ],
-  faces: [
-    [0, 1, 2, 3], // 0
-    [0, 4, 5, 1], // 1
-    [0, 3, 7, 4], // 2
-    [3, 2, 6, 7], // 3
-    [1, 5, 6, 2], // 4
-    [4, 7, 6, 5], // 5
-
-    [0, 1, 9, 8], // 6
-    [4, 5, 13, 12], // 7
-    [3, 2, 10, 11], // 8
-    [7, 6, 14, 15], // 9
-
-    [0, 3, 11, 8], // 10
-    [4, 7, 15, 12], // 11
-    [1, 2, 10, 9], // 12
-    [5, 6, 14, 13], // 13
-
-    [0, 4, 12, 8], // 14
-    [1, 5, 13, 9], // 15
-    [2, 6, 14, 10], // 16
-    [3, 7, 15, 11], // 17
-
-    [11, 10, 9, 8], // 18
-    [9, 13, 12, 8], // 19
-    [12, 15, 11, 8], // 20
-    [15, 14, 10, 11], // 21
-    [10, 14, 13, 9], // 22
-    [13, 14, 15, 12], // 23
-  ],
-  cells: [
-    [0, 1, 2, 3, 4, 5], // 0
-    [0, 6, 12, 8, 10, 18], // 1
-    [1, 6, 14, 7, 15, 19], // 2
-    [4, 12, 16, 13, 15, 22], // 3
-    [3, 8, 16, 9, 17, 21], // 4
-    [2, 10, 17, 11, 14, 20], // 5
-    [5, 7, 13, 9, 11, 23], // 6
-    [18, 19, 20, 21, 22, 23], // 7
-  ],
-  colors: [
-    0x727072,
-    0xff6188,
-    0xa9dc76,
-    0xffd866,
-    0xfc9867,
-    0xab9df2,
-    0x78dce8,
-    0xfcfcfa,
-  ],
 }
 
 const defaultColor = 0xffffff
@@ -156,7 +63,7 @@ export class HyperMesh {
     this.vertexNormals = false
     this.faceNormals = false
 
-    this.object = tesseract
+    this.object = 'hexadecachoron'
     this.cells = []
     this.helpers = {
       faceNormals: [],
@@ -166,20 +73,22 @@ export class HyperMesh {
   }
 
   update() {
-    this.object.cells.forEach((cell, cellIndex) => {
+    // eslint-disable-next-line import/namespace
+    const object = meshes[this.object]
+    object.cells.forEach((cell, cellIndex) => {
       if (!this.cellGroup.children[cellIndex]) {
         this.cellGroup.add(new Mesh(new Geometry(), new MeshLambertMaterial()))
       }
       const mesh = this.cellGroup.children[cellIndex]
 
-      const cellColor = new Color(this.object.colors[cellIndex] || defaultColor)
+      const cellColor = new Color(object.colors[cellIndex] || defaultColor)
       const unfoldedCell = cell.map(faceIndex =>
-        this.object.faces[faceIndex].map(
-          verticeIndex => this.object.vertices[verticeIndex]
+        object.faces[faceIndex].map(
+          verticeIndex => object.vertices[verticeIndex]
         )
       )
       const allVertices = unfoldedCell.flat(1)
-      const cellVertices = this.object.vertices.filter(vertice =>
+      const cellVertices = object.vertices.filter(vertice =>
         allVertices.includes(vertice)
       )
 
@@ -222,7 +131,6 @@ export class HyperMesh {
       mesh.material.vertexColors = FaceColors
       mesh.material.side = DoubleSide
       mesh.material.depthWrite = this.cellDepthWrite
-      // mesh.material.needsUpdate = true
 
       if (this.hasEdges) {
         if (!this.edgeGroup.children[cellIndex]) {
@@ -285,7 +193,6 @@ export class HyperMesh {
         vertice.material.map = this.dotTexture
         vertice.material.size = 0.25
         vertice.material.alphaTest = 0.5
-        // vertice.material.needsUpdate = true
 
         vertice.position.copy(mesh.position)
         vertice.scale.setScalar(mesh.scale.x)
@@ -348,5 +255,11 @@ export class HyperMesh {
       mesh.remove(vertexNormalsHelpers[cellIndex])
       vertexNormalsHelpers[cellIndex] = null
     }
+  }
+
+  reset() {
+    this.cellGroup.remove(...this.cellGroup.children)
+    this.edgeGroup.remove(...this.edgeGroup.children)
+    this.verticeGroup.remove(...this.verticeGroup.children)
   }
 }
