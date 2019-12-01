@@ -24,7 +24,7 @@ import {
 } from 'three'
 
 import disc from './disc.png'
-import * as meshes from './meshes'
+import { tesseract } from './meshes'
 
 export const BLENDINGS = {
   NoBlending,
@@ -63,7 +63,7 @@ export class HyperMesh {
     this.vertexNormals = false
     this.faceNormals = false
 
-    this.object = 'hexadecachoron'
+    this.hypermesh = tesseract
     this.helpers = {
       faceNormals: [],
       vertexNormals: [],
@@ -73,24 +73,25 @@ export class HyperMesh {
 
   update() {
     // eslint-disable-next-line import/namespace
-    const object = meshes[this.object]
-    if ((object.scale || 1) !== this.group.scale) {
-      this.group.scale.setScalar(object.scale || 1)
+    if ((this.hypermesh.scale || 1) !== this.group.scale) {
+      this.group.scale.setScalar(this.hypermesh.scale || 1)
     }
-    object.cells.forEach((cell, cellIndex) => {
+    this.hypermesh.cells.forEach((cell, cellIndex) => {
       if (!this.cellGroup.children[cellIndex]) {
         this.cellGroup.add(new Mesh(new Geometry(), new MeshLambertMaterial()))
       }
       const mesh = this.cellGroup.children[cellIndex]
 
-      const cellColor = new Color(object.colors[cellIndex] || defaultColor)
+      const cellColor = new Color(
+        this.hypermesh.colors[cellIndex] || defaultColor
+      )
       const unfoldedCell = cell.map(faceIndex =>
-        object.faces[faceIndex].map(
-          verticeIndex => object.vertices[verticeIndex]
+        this.hypermesh.faces[faceIndex].map(
+          verticeIndex => this.hypermesh.vertices[verticeIndex]
         )
       )
       const allVertices = unfoldedCell.flat(1)
-      const cellVertices = object.vertices.filter(vertice =>
+      const cellVertices = this.hypermesh.vertices.filter(vertice =>
         allVertices.includes(vertice)
       )
 
@@ -257,6 +258,11 @@ export class HyperMesh {
       mesh.remove(vertexNormalsHelpers[cellIndex])
       vertexNormalsHelpers[cellIndex] = null
     }
+  }
+
+  switch(hypermesh) {
+    this.reset()
+    this.hypermesh = hypermesh
   }
 
   reset() {

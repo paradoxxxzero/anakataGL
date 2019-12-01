@@ -42,8 +42,11 @@ class Main {
     this.hoveredCell = null
     this.rayCaster = new Raycaster()
     this.axes = this.initAxes()
-    this.gui = this.initGui()
 
+    this.meshes = [...Object.keys(meshes), 'custom']
+    this.customMesh = JSON.stringify(meshes.tesseract)
+
+    this.gui = this.initGui()
     this.setupDom()
   }
 
@@ -108,8 +111,19 @@ class Main {
   initGui() {
     const gui = new GUI()
     gui
-      .add(this.hyperMesh, 'object', Object.keys(meshes))
-      .onChange(this.hyperMesh.reset.bind(this.hyperMesh))
+      .add({ mesh: 'tesseract' }, 'mesh', this.meshes)
+      .onChange(value =>
+        this.hyperMesh.switch(
+          value === 'custom' ? JSON.parse(this.customMesh) : meshes[value]
+        )
+      )
+    gui.add(this, 'customMesh').onChange(() => {
+      try {
+        this.hyperMesh.switch(JSON.parse(this.customMesh))
+      } catch (e) {
+        console.error(e)
+      }
+    })
     gui.add(this.hyperRenderer, 'fov', 0, Math.PI)
     gui.add(this.camera, 'fov', 0, Math.PI).onChange(value => {
       this.axes.camera.fov = this.camera.fov = (value / Math.PI) * 180
@@ -234,8 +248,7 @@ class Main {
     this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.setScissor(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.setClearColor(
-      // eslint-disable-next-line import/namespace
-      meshes[this.hyperMesh.object].backgroundColor,
+      this.hyperMesh.hypermesh.backgroundColor || 0x000000,
       1
     )
     this.renderer.clear()
