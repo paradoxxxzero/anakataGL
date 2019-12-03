@@ -43,8 +43,12 @@ class Main {
     this.rayCaster = new Raycaster()
     this.axes = this.initAxes()
 
-    this.meshes = [...Object.keys(meshes), 'custom']
-    this.customMesh = JSON.stringify(meshes.tesseract)
+    if (!localStorage.getItem('meshes')) {
+      localStorage.setItem('meshes', JSON.stringify(meshes))
+    }
+
+    window.addEventListener('storage', this.onStorage.bind(this))
+    ;[this.mesh] = Object.keys(JSON.parse(localStorage.getItem('meshes')))
 
     this.gui = this.initGui()
     this.setupDom()
@@ -111,25 +115,49 @@ class Main {
   initGui() {
     const gui = new GUI()
     gui
-      .add({ mesh: 'tesseract' }, 'mesh', this.meshes)
-      .onChange(value =>
-        this.hyperMesh.switch(
-          value === 'custom' ? JSON.parse(this.customMesh) : meshes[value]
-        )
+      .add(
+        this,
+        'mesh',
+        Object.keys(JSON.parse(localStorage.getItem('meshes')))
       )
-    gui.add(this, 'customMesh').onChange(() => {
-      try {
-        this.hyperMesh.switch(JSON.parse(this.customMesh))
-      } catch (e) {
-        console.error(e)
-      }
-    })
-    gui.add(this.hyperRenderer, 'fov', 0, Math.PI)
-    gui.add(this.camera, 'fov', 0, Math.PI).onChange(value => {
-      this.axes.camera.fov = this.camera.fov = (value / Math.PI) * 180
-      this.camera.updateProjectionMatrix()
-      this.axes.camera.updateProjectionMatrix()
-    })
+      .onChange(value =>
+        this.hyperMesh.switch(JSON.parse(localStorage.getItem('meshes'))[value])
+      )
+    gui.add(
+      {
+        add: () => {
+          const localMeshes = JSON.parse(localStorage.getItem('meshes'))
+
+          const name = prompt('Name of your mesh')
+          if (name) {
+            localMeshes[name] = {
+              vertices: [],
+              faces: [],
+              cells: [],
+              colors: [],
+            }
+            localStorage.setItem('meshes', JSON.stringify(localMeshes))
+          }
+        },
+      },
+      'add'
+    )
+    gui.add(
+      {
+        edit: () => window.open(`/edit#${this.mesh}`),
+      },
+      'edit'
+    )
+    gui.add(this.hyperRenderer, 'fov', 0, Math.PI).name('w fov')
+    gui
+      .add({ zfov: (this.camera.fov / 180) * Math.PI }, 'zfov', 0, Math.PI)
+      .onChange(value => {
+        this.axes.camera.fov = this.camera.fov = (value / Math.PI) * 180
+        this.camera.updateProjectionMatrix()
+        this.axes.camera.updateProjectionMatrix()
+      })
+      .listen()
+      .name('z fov')
     const rot = gui.addFolder('4d rotation')
     Object.keys(this.hyperRotation).forEach(k => {
       rot.add(this.hyperRenderer.rotation, k, 0, 2 * Math.PI).listen()
@@ -238,6 +266,13 @@ class Main {
     this.camera.updateProjectionMatrix()
 
     this.renderer.setSize(window.innerWidth, window.innerHeight)
+  }
+
+  onStorage({ key, newValue }) {
+    if (key !== 'meshes') {
+      return
+    }
+    this.hyperMesh.switch(JSON.parse(newValue)[this.mesh])
   }
 
   render() {
