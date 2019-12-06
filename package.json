@@ -2,7 +2,10 @@
   "name": "anakata",
   "author": "Florian Mounier",
   "license": "MIT",
-  "module": "src/index.js",
+  "main": "src/index.js",
+  "files": [
+    "src"
+  ],
   "devDependencies": {
     "css-loader": "^3.0.0",
     "eslint": "^5.16.0",
@@ -27,5 +30,5 @@
     "stats.js": "^0.17.0",
     "three": "^0.105.2"
   },
-  "version": "0.0.1"
+  "version": "0.1.0"
 }
