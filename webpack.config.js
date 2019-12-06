@@ -30,7 +30,7 @@ module.exports = {
     'edit/edit': './src/edit/index.js',
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'docs'),
     filename: '[name].js',
   },
   plugins: [
