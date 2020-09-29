@@ -4,14 +4,14 @@ import 'codemirror/theme/monokai.css'
 import CodeMirror from 'codemirror'
 import 'codemirror/mode/javascript/javascript'
 import prettier from 'prettier/standalone'
-import babylon from 'prettier/parser-babylon'
+import babel from 'prettier/parser-babel'
 
 import * as meshes from '../meshes'
 import './index.sass'
 
 const prettify = s => {
   try {
-    return prettier.format(s, { parser: 'json', plugins: [babylon] })
+    return prettier.format(s, { parser: 'json', plugins: [babel] })
   } catch (e) {
     console.error(e)
     return s

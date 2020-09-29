@@ -185,9 +185,9 @@ class Main {
     edge.open()
 
     gui.add(this.hyperMesh, 'hasVertices')
-    const guiDebug = gui.addFolder('Debug')
-    guiDebug.add(this.hyperMesh, 'vertexNormals')
-    guiDebug.add(this.hyperMesh, 'faceNormals')
+    // const guiDebug = gui.addFolder('Debug')
+    // guiDebug.add(this.hyperMesh, 'vertexNormals')
+    // guiDebug.add(this.hyperMesh, 'faceNormals')
     // const click = this.onClick.bind(this)
     // gui.add({ selection: false }, 'selection').onChange(value => {
     //   document[value ? 'addEventListener' : 'removeEventListener'](

@@ -19,8 +19,6 @@ import {
   FaceColors,
   Vector3,
   Face3,
-  FaceNormalsHelper,
-  VertexNormalsHelper,
 } from 'three'
 
 import disc from './disc.png'
@@ -200,7 +198,6 @@ export class HyperMesh {
         vertice.position.copy(mesh.position)
         vertice.scale.setScalar(mesh.scale.x)
       }
-      this.handleDebug(cellIndex, mesh, cellColor)
     })
     if (this.hasCells && !this.group.children.includes(this.cellGroup)) {
       this.group.add(this.cellGroup)
@@ -221,42 +218,6 @@ export class HyperMesh {
     if (!this.hasVertices && this.group.children.includes(this.verticeGroup)) {
       this.group.remove(this.verticeGroup)
       this.verticeGroup.remove(...this.verticeGroup.children)
-    }
-  }
-
-  handleDebug(cellIndex, mesh, cellColor) {
-    const faceNormalsHelpers = this.helpers.faceNormals
-    if (this.faceNormals) {
-      if (!faceNormalsHelpers[cellIndex]) {
-        faceNormalsHelpers[cellIndex] = new FaceNormalsHelper(
-          mesh,
-          0.5,
-          cellColor
-        )
-        mesh.add(faceNormalsHelpers[cellIndex])
-      }
-      // faceNormalsHelpers[cellIndex].position.copy(mesh.position)
-      faceNormalsHelpers[cellIndex].update()
-    } else if (faceNormalsHelpers[cellIndex]) {
-      mesh.remove(faceNormalsHelpers[cellIndex])
-      faceNormalsHelpers[cellIndex] = null
-    }
-
-    const vertexNormalsHelpers = this.helpers.vertexNormals
-    if (this.vertexNormals) {
-      if (!vertexNormalsHelpers[cellIndex]) {
-        vertexNormalsHelpers[cellIndex] = new VertexNormalsHelper(
-          mesh,
-          0.5,
-          cellColor
-        )
-        mesh.add(vertexNormalsHelpers[cellIndex])
-      }
-      // vertexNormalsHelpers[cellIndex].position.copy(mesh.position)
-      vertexNormalsHelpers[cellIndex].update()
-    } else if (vertexNormalsHelpers[cellIndex]) {
-      mesh.remove(vertexNormalsHelpers[cellIndex])
-      vertexNormalsHelpers[cellIndex] = null
     }
   }
 
