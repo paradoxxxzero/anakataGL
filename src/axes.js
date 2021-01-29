@@ -1,4 +1,10 @@
-import { Geometry, Line, LineBasicMaterial, Group } from 'three'
+import {
+  BufferGeometry,
+  Float32BufferAttribute,
+  Group,
+  Line,
+  LineBasicMaterial,
+} from 'three'
 
 export class Axes {
   constructor(hyperRenderer, u) {
@@ -7,18 +13,22 @@ export class Axes {
     this.u = u || 1
     this.axes = [
       {
+        name: 'x',
         v: [this.u, 0, 0, 0],
         color: 0xff0000,
       },
       {
+        name: 'y',
         v: [0, this.u, 0, 0],
         color: 0x00ff00,
       },
       {
+        name: 'z',
         v: [0, 0, this.u, 0],
         color: 0x0000ff,
       },
       {
+        name: 'w',
         v: [0, 0, 0, this.u],
         color: 0xff00ff,
       },
@@ -34,9 +44,15 @@ export class Axes {
         color: axis.color,
         linewidth: this.width,
       })
-      axis.geometry = new Geometry()
-      axis.geometry.vertices.push(this.hyperRenderer.toVector3(this.origin))
-      axis.geometry.vertices.push(this.hyperRenderer.toVector3(axis.v))
+      axis.geometry = new BufferGeometry()
+      axis.geometry.name = `${axis.name} axis`
+      const points = []
+      points.push(...this.hyperRenderer.to3d(this.origin))
+      points.push(...this.hyperRenderer.to3d(axis.v))
+      axis.geometry.setAttribute(
+        'position',
+        new Float32BufferAttribute(points, 3)
+      )
       axis.line = new Line(axis.geometry, axis.material)
       this.group.add(axis.line)
     })
@@ -44,8 +60,11 @@ export class Axes {
 
   update() {
     this.axes.forEach(axis => {
-      axis.line.geometry.vertices[1] = this.hyperRenderer.toVector3(axis.v)
-      axis.line.geometry.verticesNeedUpdate = true
+      axis.line.geometry.attributes.position.setXYZ(
+        1,
+        ...this.hyperRenderer.to3d(axis.v)
+      )
+      axis.line.geometry.attributes.position.needsUpdate = true
     })
   }
 }

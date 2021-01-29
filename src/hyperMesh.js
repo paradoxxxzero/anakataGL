@@ -1,26 +1,25 @@
 import {
-  Mesh,
-  MeshLambertMaterial,
-  Group,
-  Geometry,
-  LineSegments,
-  LineBasicMaterial,
-  Points,
-  PointsMaterial,
-  TextureLoader,
-  NoBlending,
-  NormalBlending,
   AdditiveBlending,
-  SubtractiveBlending,
-  MultiplyBlending,
+  BufferGeometry,
+  Color,
   CustomBlending,
   DoubleSide,
-  Color,
-  FaceColors,
+  Float32BufferAttribute,
+  Group,
+  LineBasicMaterial,
+  LineSegments,
+  Mesh,
+  MeshLambertMaterial,
+  MultiplyBlending,
+  NoBlending,
+  NormalBlending,
+  Points,
+  PointsMaterial,
+  SubtractiveBlending,
+  TextureLoader,
   Vector3,
-  Face3,
 } from 'three'
-
+import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import disc from './disc.png'
 import { tesseract } from './meshes'
 
@@ -36,7 +35,7 @@ export const BLENDINGS = {
 const defaultColor = 0xffffff
 
 export class HyperMesh {
-  constructor(hyperRenderer) {
+  constructor(hyperRenderer, hypermesh = tesseract) {
     this.group = new Group()
     this.cellGroup = new Group()
     this.edgeGroup = new Group()
@@ -61,9 +60,8 @@ export class HyperMesh {
     this.vertexNormals = false
     this.faceNormals = false
 
-    this.hypermesh = tesseract
+    this.hypermesh = hypermesh
     this.helpers = {
-      faceNormals: [],
       vertexNormals: [],
     }
     this.update()
@@ -71,51 +69,91 @@ export class HyperMesh {
 
   update() {
     // eslint-disable-next-line import/namespace
+    const { cells, faces, vertices, colors } = this.hypermesh
     if ((this.hypermesh.scale || 1) !== this.group.scale) {
       this.group.scale.setScalar(this.hypermesh.scale || 1)
     }
-    this.hypermesh.cells.forEach((cell, cellIndex) => {
+
+    cells.forEach((cell, cellIndex) => {
+      const cellColor = new Color(colors[cellIndex] || defaultColor)
+      // const unfoldedCell = cell.map(faceIndex =>
+      //   this.hypermesh.faces[faceIndex].map(
+      //     verticeIndex => this.hypermesh.vertices[verticeIndex]
+      //   )
+      // )
+      // const allVertices = unfoldedCell.flat(1)
+      // const cellVertices = this.hypermesh.vertices.filter(vertice =>
+      //   allVertices.includes(vertice)
+      // )
+
+      // const cellFaces = unfoldedCell.map(face =>
+      //   face.map(vertice => cellVertices.indexOf(vertice))
+      // )
+
+      // Mesh initialization
       if (!this.cellGroup.children[cellIndex]) {
-        this.cellGroup.add(new Mesh(new Geometry(), new MeshLambertMaterial()))
-      }
-      const mesh = this.cellGroup.children[cellIndex]
-
-      const cellColor = new Color(
-        this.hypermesh.colors[cellIndex] || defaultColor
-      )
-      const unfoldedCell = cell.map(faceIndex =>
-        this.hypermesh.faces[faceIndex].map(
-          verticeIndex => this.hypermesh.vertices[verticeIndex]
+        const newGeometry = new BufferGeometry()
+        newGeometry.name = `Hypermesh Cell #${cellIndex} Mesh`
+        newGeometry.setAttribute(
+          'position',
+          new Float32BufferAttribute(
+            new Array(
+              cell.reduce(
+                (sum, faceIndex) => sum + faces[faceIndex].length,
+                0
+              ) * 3
+            ).fill(0),
+            3
+          )
         )
-      )
-      const allVertices = unfoldedCell.flat(1)
-      const cellVertices = this.hypermesh.vertices.filter(vertice =>
-        allVertices.includes(vertice)
-      )
+        const indices = []
+        let faceShift = 0
+        cell.forEach(faceIndex => {
+          const face = faces[faceIndex]
+          switch (face.length) {
+            case 3:
+              indices.push(faceShift, faceShift + 1, faceShift + 2)
+              break
 
-      const cellFaces = unfoldedCell.map(face =>
-        face.map(vertice => cellVertices.indexOf(vertice))
-      )
+            case 4:
+              indices.push(faceShift, faceShift + 1, faceShift + 2)
+              indices.push(faceShift, faceShift + 2, faceShift + 3)
+              break
 
-      if (!mesh.geometry.vertices.length) {
-        mesh.geometry.vertices = cellVertices.map(() => new Vector3())
+            default:
+              // TODO: Make it generic
+              console.error(`Unsupported face length: ${face.length}`)
+              break
+          }
+
+          faceShift += face.length
+        })
+
+        newGeometry.setIndex(indices)
+        this.cellGroup.add(new Mesh(newGeometry, new MeshLambertMaterial()))
       }
-      mesh.geometry.vertices.forEach((vertice, verticeIndex) => {
-        vertice.copy(this.hyperRenderer.toVector3(cellVertices[verticeIndex]))
+      let faceShift = 0
+      const mesh = this.cellGroup.children[cellIndex]
+      cell.forEach(faceIndex => {
+        const face = faces[faceIndex]
+        const faceStart = faceShift
+        const faceEnd = faceShift + face.length
+
+        face.forEach((verticeIndex, i) => {
+          const vertice = vertices[verticeIndex]
+          mesh.geometry.attributes.position.setXYZ(
+            faceStart + i,
+            ...this.hyperRenderer.to3d(vertice)
+          )
+        })
+
+        faceShift = faceEnd
       })
 
-      if (!mesh.geometry.faces.length) {
-        mesh.geometry.faces = cellFaces.reduce((faces, points) => {
-          faces.push(
-            ...points.slice(1, -1).map((p, i) => {
-              const face = new Face3(points[0], p, points[i + 2])
-              face.color = cellColor
-              return face
-            })
-          )
-          return faces
-        }, [])
-      }
+      mesh.geometry.attributes.position.needsUpdate = true
+      mesh.geometry.computeVertexNormals()
+      mesh.geometry.attributes.normal.needsUpdate = true
+
       const center = new Vector3()
       mesh.geometry.computeBoundingBox()
       mesh.geometry.boundingBox.getCenter(center)
@@ -123,44 +161,56 @@ export class HyperMesh {
       mesh.position.copy(center)
       mesh.scale.setScalar(Math.min(this.cellSize / 100, 0.999))
 
-      mesh.geometry.computeFlatVertexNormals()
-      mesh.geometry.verticesNeedUpdate = true
-
+      mesh.material.color = cellColor
       mesh.material.opacity = this.cellOpacity
       mesh.material.transparent = this.cellOpacity !== 1
       mesh.material.blending = this.cellBlending
-      mesh.material.vertexColors = FaceColors
       mesh.material.side = DoubleSide
       mesh.material.depthWrite = this.cellDepthWrite
 
       if (this.hasEdges) {
         if (!this.edgeGroup.children[cellIndex]) {
+          const newGeometry = new BufferGeometry()
+          newGeometry.name = `Hypermesh Cell #${cellIndex} Edge`
+          newGeometry.setAttribute(
+            'position',
+            new Float32BufferAttribute(
+              new Array(
+                cell.reduce(
+                  (sum, faceIndex) => sum + faces[faceIndex].length * 2,
+                  0
+                ) * 3
+              ).fill(0),
+              3
+            )
+          )
           this.edgeGroup.add(
-            new LineSegments(new Geometry(), new LineBasicMaterial())
+            new LineSegments(newGeometry, new LineBasicMaterial())
           )
         }
-
+        let faceShift = 0
         const edge = this.edgeGroup.children[cellIndex]
-        if (!edge.geometry.vertices.length) {
-          edge.geometry.vertices = cellFaces
-            .map(face => face.map(() => [new Vector3(), new Vector3()]))
-            .flat(2)
-        }
+        cell.forEach(faceIndex => {
+          const face = faces[faceIndex]
+          const faceStart = faceShift
+          const faceEnd = faceShift + face.length * 2
 
-        cellFaces
-          .map(face =>
-            face.map((verticeIndex, faceIndex) => [
-              mesh.geometry.vertices[verticeIndex],
-              mesh.geometry.vertices[
-                face[faceIndex + 1 < face.length ? faceIndex + 1 : 0]
-              ],
-            ])
-          )
-          .flat(2)
-          .forEach((newVertice, verticeIndex) =>
-            edge.geometry.vertices[verticeIndex].copy(newVertice)
-          )
-        edge.geometry.verticesNeedUpdate = true
+          face.forEach((verticeIndex, i) => {
+            const vertice = vertices[verticeIndex]
+            const nextVertice = vertices[face[(i + 1) % face.length]]
+            edge.geometry.attributes.position.setXYZ(
+              faceStart + 2 * i,
+              ...this.hyperRenderer.to3d(vertice)
+            )
+            edge.geometry.attributes.position.setXYZ(
+              faceStart + 2 * i + 1,
+              ...this.hyperRenderer.to3d(nextVertice)
+            )
+          })
+          faceShift = faceEnd
+        })
+
+        edge.geometry.attributes.position.needsUpdate = true
 
         edge.material.color = cellColor
         edge.material.transparent = this.edgeOpacity !== 1
@@ -169,35 +219,60 @@ export class HyperMesh {
         edge.material.linewidth = this.edgeWidth
         edge.material.depthWrite = this.edgeDepthWrite
 
-        edge.material.needsUpdate = true
-
-        edge.position.copy(mesh.position)
-        edge.scale.setScalar(mesh.scale.x)
+        const center = new Vector3()
+        edge.geometry.computeBoundingBox()
+        edge.geometry.boundingBox.getCenter(center)
+        edge.geometry.center()
+        edge.position.copy(center)
+        edge.scale.setScalar(Math.min(this.cellSize / 100, 0.999))
       }
+
       if (this.hasVertices) {
+        const allVertices = [
+          ...new Set(
+            cell
+              .map(faceIndex =>
+                faces[faceIndex].map(verticeIndex => vertices[verticeIndex])
+              )
+              .flat()
+          ),
+        ]
         if (!this.verticeGroup.children[cellIndex]) {
-          this.verticeGroup.add(
-            new Points(new Geometry(), new PointsMaterial())
+          const newGeometry = new BufferGeometry()
+          newGeometry.name = `Hypermesh Cell #${cellIndex} Vertices`
+          newGeometry.setAttribute(
+            'position',
+            new Float32BufferAttribute(
+              new Array(allVertices.length * 3).fill(0),
+              3
+            )
           )
+
+          this.verticeGroup.add(new Points(newGeometry, new PointsMaterial()))
         }
 
         const vertice = this.verticeGroup.children[cellIndex]
-        if (!vertice.geometry.vertices.length) {
-          vertice.geometry.vertices = cellVertices.map(() => new Vector3())
-        }
-        vertice.geometry.vertices.forEach((v, verticeIndex) => {
-          v.copy(mesh.geometry.vertices[verticeIndex])
+        allVertices.forEach((v, i) => {
+          vertice.geometry.attributes.position.setXYZ(
+            i,
+            ...this.hyperRenderer.to3d(v)
+          )
         })
-        vertice.geometry.verticesNeedUpdate = true
+        vertice.geometry.attributes.position.needsUpdate = true
 
         vertice.material.color = cellColor
         vertice.material.map = this.dotTexture
         vertice.material.size = 0.25
         vertice.material.alphaTest = 0.5
 
-        vertice.position.copy(mesh.position)
-        vertice.scale.setScalar(mesh.scale.x)
+        const center = new Vector3()
+        vertice.geometry.computeBoundingBox()
+        vertice.geometry.boundingBox.getCenter(center)
+        vertice.geometry.center()
+        vertice.position.copy(center)
+        vertice.scale.setScalar(Math.min(this.cellSize / 100, 0.999))
       }
+      this.handleDebug(cellIndex, mesh, cellColor)
     })
     if (this.hasCells && !this.group.children.includes(this.cellGroup)) {
       this.group.add(this.cellGroup)
@@ -221,6 +296,24 @@ export class HyperMesh {
     }
   }
 
+  handleDebug(cellIndex, mesh, cellColor) {
+    const vertexNormalsHelpers = this.helpers.vertexNormals
+    if (this.vertexNormals) {
+      if (!vertexNormalsHelpers[cellIndex]) {
+        vertexNormalsHelpers[cellIndex] = new VertexNormalsHelper(
+          mesh,
+          0.5,
+          cellColor
+        )
+        this.group.add(vertexNormalsHelpers[cellIndex])
+      }
+      // vertexNormalsHelpers[cellIndex].position.copy(mesh.position)
+      vertexNormalsHelpers[cellIndex].update()
+    } else if (vertexNormalsHelpers[cellIndex]) {
+      this.group.remove(vertexNormalsHelpers[cellIndex])
+      vertexNormalsHelpers[cellIndex] = null
+    }
+  }
   switch(hypermesh) {
     this.reset()
     this.hypermesh = hypermesh
@@ -230,5 +323,7 @@ export class HyperMesh {
     this.cellGroup.remove(...this.cellGroup.children)
     this.edgeGroup.remove(...this.edgeGroup.children)
     this.verticeGroup.remove(...this.verticeGroup.children)
+    this.group.remove(...this.helpers.vertexNormals)
+    this.helpers.vertexNormals = []
   }
 }
