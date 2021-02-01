@@ -1,5 +1,3 @@
-import { Vector3 } from 'three'
-
 export class HyperRenderer {
   constructor(fov, w) {
     this.fov = fov || 1
@@ -19,10 +17,6 @@ export class HyperRenderer {
     const [x, y, z, w] = this.rotatePoint([xo, yo, zo, wo])
     const zoom = 1 + (w * this.fov) / this.w
     return [x / zoom, y / zoom, z / zoom]
-  }
-
-  toVector3(coords) {
-    return new Vector3(...this.to3d(coords))
   }
 
   rotate(delta) {

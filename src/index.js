@@ -98,17 +98,18 @@ class Main {
   }
   initHyperMesh(hypermesh) {
     const hyperMesh = new HyperMesh(this.hyperRenderer, hypermesh)
-    this.scene.add(hyperMesh.group)
+    this.scene.add(hyperMesh)
     return hyperMesh
   }
 
   switchHyperMesh(hypermesh) {
-    this.scene.remove(this.hyperMesh.group)
     if (this.debug.vertexNormals) {
       this.handleVertex(false)
     }
-    this.hyperMesh = new HyperMesh(this.hyperRenderer, hypermesh)
-    this.scene.add(this.hyperMesh.group)
+    this.hyperMesh.clear()
+    this.hyperMesh.hypermesh = hypermesh
+    this.hyperMesh.update()
+
     if (this.debug.vertexNormals) {
       this.handleVertex(true)
     }
@@ -134,6 +135,7 @@ class Main {
 
   initGui() {
     const gui = new GUI()
+
     gui
       .add(
         this,
@@ -204,7 +206,8 @@ class Main {
     edge.add(this.hyperMesh, 'edgeDepthWrite')
     edge.open()
 
-    gui.add(this.hyperMesh, 'hasVertices')
+    const vertice = gui.addFolder('Vertice')
+    vertice.add(this.hyperMesh, 'hasVertices')
 
     const guiDebug = gui.addFolder('Debug')
     guiDebug
@@ -217,7 +220,7 @@ class Main {
 
   handleVertex(on) {
     if (on) {
-      this.hyperMesh.cellGroup.children.forEach(mesh => {
+      this.hyperMesh.subGroup('cell')?.children.forEach(mesh => {
         this.debugGroup.add(
           new VertexNormalsHelper(mesh, 0.25, mesh.material.color)
         )
