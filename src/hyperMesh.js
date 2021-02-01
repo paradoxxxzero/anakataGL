@@ -19,7 +19,6 @@ import {
   TextureLoader,
   Vector3,
 } from 'three'
-import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import disc from './disc.png'
 import { tesseract } from './meshes'
 
@@ -58,12 +57,11 @@ export class HyperMesh {
     this.edgeDepthWrite = !true
 
     this.vertexNormals = false
-    this.faceNormals = false
+    this.wireframe = false
 
     this.hypermesh = hypermesh
-    this.helpers = {
-      vertexNormals: [],
-    }
+    this.vertexNormals = []
+
     this.update()
   }
 
@@ -76,19 +74,6 @@ export class HyperMesh {
 
     cells.forEach((cell, cellIndex) => {
       const cellColor = new Color(colors[cellIndex] || defaultColor)
-      // const unfoldedCell = cell.map(faceIndex =>
-      //   this.hypermesh.faces[faceIndex].map(
-      //     verticeIndex => this.hypermesh.vertices[verticeIndex]
-      //   )
-      // )
-      // const allVertices = unfoldedCell.flat(1)
-      // const cellVertices = this.hypermesh.vertices.filter(vertice =>
-      //   allVertices.includes(vertice)
-      // )
-
-      // const cellFaces = unfoldedCell.map(face =>
-      //   face.map(vertice => cellVertices.indexOf(vertice))
-      // )
 
       // Mesh initialization
       if (!this.cellGroup.children[cellIndex]) {
@@ -110,21 +95,9 @@ export class HyperMesh {
         let faceShift = 0
         cell.forEach(faceIndex => {
           const face = faces[faceIndex]
-          switch (face.length) {
-            case 3:
-              indices.push(faceShift, faceShift + 1, faceShift + 2)
-              break
-
-            case 4:
-              indices.push(faceShift, faceShift + 1, faceShift + 2)
-              indices.push(faceShift, faceShift + 2, faceShift + 3)
-              break
-
-            default:
-              // TODO: Make it generic
-              console.error(`Unsupported face length: ${face.length}`)
-              break
-          }
+          new Array(face.length - 2).fill().forEach((_, i) => {
+            indices.push(faceShift, faceShift + i + 1, faceShift + i + 2)
+          })
 
           faceShift += face.length
         })
@@ -167,6 +140,7 @@ export class HyperMesh {
       mesh.material.blending = this.cellBlending
       mesh.material.side = DoubleSide
       mesh.material.depthWrite = this.cellDepthWrite
+      mesh.material.wireframe = this.wireframe
 
       if (this.hasEdges) {
         if (!this.edgeGroup.children[cellIndex]) {
@@ -272,8 +246,8 @@ export class HyperMesh {
         vertice.position.copy(center)
         vertice.scale.setScalar(Math.min(this.cellSize / 100, 0.999))
       }
-      this.handleDebug(cellIndex, mesh, cellColor)
     })
+
     if (this.hasCells && !this.group.children.includes(this.cellGroup)) {
       this.group.add(this.cellGroup)
     }
@@ -294,36 +268,5 @@ export class HyperMesh {
       this.group.remove(this.verticeGroup)
       this.verticeGroup.remove(...this.verticeGroup.children)
     }
-  }
-
-  handleDebug(cellIndex, mesh, cellColor) {
-    const vertexNormalsHelpers = this.helpers.vertexNormals
-    if (this.vertexNormals) {
-      if (!vertexNormalsHelpers[cellIndex]) {
-        vertexNormalsHelpers[cellIndex] = new VertexNormalsHelper(
-          mesh,
-          0.5,
-          cellColor
-        )
-        this.group.add(vertexNormalsHelpers[cellIndex])
-      }
-      // vertexNormalsHelpers[cellIndex].position.copy(mesh.position)
-      vertexNormalsHelpers[cellIndex].update()
-    } else if (vertexNormalsHelpers[cellIndex]) {
-      this.group.remove(vertexNormalsHelpers[cellIndex])
-      vertexNormalsHelpers[cellIndex] = null
-    }
-  }
-  switch(hypermesh) {
-    this.reset()
-    this.hypermesh = hypermesh
-  }
-
-  reset() {
-    this.cellGroup.remove(...this.cellGroup.children)
-    this.edgeGroup.remove(...this.edgeGroup.children)
-    this.verticeGroup.remove(...this.verticeGroup.children)
-    this.group.remove(...this.helpers.vertexNormals)
-    this.helpers.vertexNormals = []
   }
 }

@@ -2,6 +2,7 @@ import { GUI } from 'dat.gui'
 import Stats from 'stats.js'
 import {
   AmbientLight,
+  Group,
   PerspectiveCamera,
   PointLight,
   Raycaster,
@@ -10,6 +11,7 @@ import {
   WebGLRenderer,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import { Axes } from './axes'
 import { BLENDINGS, HyperMesh } from './hyperMesh'
 import { HyperRenderer } from './hyperRenderer'
@@ -27,8 +29,15 @@ class Main {
       zw: 10,
     }
 
+    this.debug = {
+      vertexNormals: false,
+    }
+    this.debugGroup = new Group()
+
     this.stats = new Stats()
     this.scene = new Scene()
+
+    this.scene.add(this.debugGroup)
 
     this.renderer = this.initRenderer()
     this.hyperRenderer = new HyperRenderer(1.5, 5)
@@ -42,7 +51,7 @@ class Main {
     const localMeshes = JSON.parse(localStorage.getItem('meshes'))
 
     window.addEventListener('storage', this.onStorage.bind(this))
-    this.mesh = Object.keys(localMeshes)[0]
+    this.mesh = 'tesseract'
 
     this.hyperMesh = this.initHyperMesh(localMeshes[this.mesh])
     this.selectedCells = []
@@ -59,10 +68,8 @@ class Main {
       antialias: true,
       alpha: true,
     })
-    renderer.autoClear = false
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setScissorTest(true)
     return renderer
   }
   initCamera() {
@@ -94,6 +101,19 @@ class Main {
     this.scene.add(hyperMesh.group)
     return hyperMesh
   }
+
+  switchHyperMesh(hypermesh) {
+    this.scene.remove(this.hyperMesh.group)
+    if (this.debug.vertexNormals) {
+      this.handleVertex(false)
+    }
+    this.hyperMesh = new HyperMesh(this.hyperRenderer, hypermesh)
+    this.scene.add(this.hyperMesh.group)
+    if (this.debug.vertexNormals) {
+      this.handleVertex(true)
+    }
+  }
+
   initAxes() {
     const axes = {
       scene: new Scene(),
@@ -121,7 +141,7 @@ class Main {
         Object.keys(JSON.parse(localStorage.getItem('meshes')))
       )
       .onChange(value =>
-        this.hyperMesh.switch(JSON.parse(localStorage.getItem('meshes'))[value])
+        this.switchHyperMesh(JSON.parse(localStorage.getItem('meshes'))[value])
       )
     gui.add(
       {
@@ -187,27 +207,24 @@ class Main {
     gui.add(this.hyperMesh, 'hasVertices')
 
     const guiDebug = gui.addFolder('Debug')
-    guiDebug.add(this.hyperMesh, 'vertexNormals')
-    // guiDebug.add(this.hyperMesh, 'faceNormals')
-    // const click = this.onClick.bind(this)
-    // gui.add({ selection: false }, 'selection').onChange(value => {
-    //   document[value ? 'addEventListener' : 'removeEventListener'](
-    //     'mousemove',
-    //     mouseMove,
-    //     false
-    //   )
-    //   document[value ? 'addEventListener' : 'removeEventListener'](
-    //     'click',
-    //     click,
-    //     false
-    //   )
-    //   if (!value) {
-    //     this.hoveredCell = null
-    //     this.selectedCells = []
-    //     this.syncCells()
-    //   }
-    // })
+    guiDebug
+      .add(this.debug, 'vertexNormals')
+      .onChange(this.handleVertex.bind(this))
+    guiDebug.add(this.hyperMesh, 'wireframe')
+
     return gui
+  }
+
+  handleVertex(on) {
+    if (on) {
+      this.hyperMesh.cellGroup.children.forEach(mesh => {
+        this.debugGroup.add(
+          new VertexNormalsHelper(mesh, 0.25, mesh.material.color)
+        )
+      })
+    } else {
+      this.debugGroup.clear()
+    }
   }
 
   setupDom() {
@@ -273,27 +290,36 @@ class Main {
     if (key !== 'meshes') {
       return
     }
-    this.hyperMesh.switch(JSON.parse(newValue)[this.mesh])
+    this.switchHyperMesh(JSON.parse(newValue)[this.mesh])
   }
 
   render() {
     requestAnimationFrame(this.render.bind(this))
+    // Updates
+    this.stats.update()
+
     this.hyperRenderer.rotate(this.hyperRotation)
     this.hyperMesh.update()
 
-    this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
-    this.renderer.setScissor(0, 0, window.innerWidth, window.innerHeight)
+    this.debugGroup.children.map(child => child.update())
+
+    this.axes.camera.position.copy(this.camera.position)
+    this.axes.camera.quaternion.copy(this.camera.quaternion)
+    this.axes.axes.update()
+
+    // Rendering
+
+    // Render scene
     this.renderer.setClearColor(
       this.hyperMesh.hypermesh.backgroundColor || 0x000000,
       1
     )
-    this.renderer.clear()
+    this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.render(this.scene, this.camera)
 
-    this.axes.camera.position.copy(this.camera.position)
-    this.axes.camera.quaternion.copy(this.camera.quaternion)
-
-    this.axes.axes.update()
+    // Render axes
+    this.renderer.clearDepth()
+    this.renderer.setScissorTest(true)
     this.renderer.setScissor(
       window.innerWidth - this.axes.size,
       0,
@@ -307,7 +333,7 @@ class Main {
       this.axes.size
     )
     this.renderer.render(this.axes.scene, this.axes.camera)
-    this.stats.update()
+    this.renderer.setScissorTest(false)
   }
 }
 
