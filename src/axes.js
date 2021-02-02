@@ -47,8 +47,8 @@ export class Axes {
       axis.geometry = new BufferGeometry()
       axis.geometry.name = `${axis.name} axis`
       const points = []
-      points.push(...this.hyperRenderer.to3d(this.origin))
-      points.push(...this.hyperRenderer.to3d(axis.v))
+      points.push(...this.hyperRenderer.project(this.origin))
+      points.push(...this.hyperRenderer.project(axis.v))
       axis.geometry.setAttribute(
         'position',
         new Float32BufferAttribute(points, 3)
@@ -62,7 +62,7 @@ export class Axes {
     this.axes.forEach(axis => {
       axis.line.geometry.attributes.position.setXYZ(
         1,
-        ...this.hyperRenderer.to3d(axis.v)
+        ...this.hyperRenderer.project(axis.v)
       )
       axis.line.geometry.attributes.position.needsUpdate = true
     })

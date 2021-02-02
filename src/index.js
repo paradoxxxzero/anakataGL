@@ -1,32 +1,98 @@
 import { GUI } from 'dat.gui'
 import Stats from 'stats.js'
 import {
+  AdditiveBlending,
   AmbientLight,
+  Color,
+  CustomBlending,
+  DoubleSide,
   Group,
+  LineBasicMaterial,
+  LineSegments,
+  MeshLambertMaterial,
+  MultiplyBlending,
+  NoBlending,
+  NormalBlending,
   PerspectiveCamera,
   PointLight,
+  Points,
+  PointsMaterial,
   Raycaster,
   Scene,
+  SubtractiveBlending,
+  TextureLoader,
   Vector2,
   WebGLRenderer,
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'
 import { Axes } from './axes'
-import { BLENDINGS, HyperMesh } from './hyperMesh'
-import { HyperRenderer } from './hyperRenderer'
-import * as meshes from './meshes'
-import { toNumber } from './utils'
+import COLORS from './colors'
+import disc from './disc.png'
+import HyperEdgeGeometry from './four/HyperEdgeGeometry'
+import HyperGeometry from './four/HyperGeometry'
+import HyperMesh from './four/HyperMesh'
+import HyperPointsGeometry from './four/HyperPointsGeometry'
+import HyperRenderer from './four/HyperRenderer'
+import * as SHAPES from './four/shapes'
+import presets from './presets'
+
+const BLENDINGS = {
+  NoBlending,
+  NormalBlending,
+  AdditiveBlending,
+  MultiplyBlending,
+  SubtractiveBlending,
+  CustomBlending,
+}
+
+const PLANES = ['xy', 'xz', 'xw', 'yz', 'yw', 'zw']
+const DOT = new TextureLoader().load(disc)
 
 class Main {
   constructor() {
-    this.hyperRotation = {
-      xy: 0,
-      xz: 0,
-      xw: 10,
-      yz: 0,
-      yw: 10,
-      zw: 10,
+    this.settings = {
+      shape: 'tesseract',
+      colors: 'onedarkterminator',
+      zFov: 90,
+      wFov: 90,
+      cellSize: 100,
+      rotation: {
+        xy: 0,
+        xz: 0,
+        xw: 10,
+        yz: 0,
+        yw: 10,
+        zw: 10,
+      },
+      rotationSpeed: {
+        xy: 0,
+        xz: 0,
+        xw: 10,
+        yz: 0,
+        yw: 10,
+        zw: 10,
+      },
+      cells: {
+        visible: true,
+        opacity: 0.1,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        wireframe: false,
+      },
+      edges: {
+        visible: true,
+        opacity: 0.04,
+        blending: AdditiveBlending,
+        linewidth: 2,
+        depthWrite: false,
+      },
+      vertices: {
+        visible: false,
+      },
+      debug: {
+        vertexNormals: false,
+      },
     }
 
     this.debug = {
@@ -40,26 +106,20 @@ class Main {
     this.scene.add(this.debugGroup)
 
     this.renderer = this.initRenderer()
-    this.hyperRenderer = new HyperRenderer(1.5, 5)
+    this.hyperRenderer = new HyperRenderer(1.5, 5, this.settings.rotation)
     this.camera = this.initCamera()
-    this.initControls()
+    this.controls = this.initControls()
     this.initLights()
 
-    if (!localStorage.getItem('meshes')) {
-      localStorage.setItem('meshes', JSON.stringify(meshes))
-    }
-    const localMeshes = JSON.parse(localStorage.getItem('meshes'))
-
-    window.addEventListener('storage', this.onStorage.bind(this))
-    this.mesh = 'tesseract'
-
-    this.hyperMesh = this.initHyperMesh(localMeshes[this.mesh])
+    this.hyperMesh = this.initHyperMesh()
+    this.hyperEdges = this.initHyperEdges()
+    this.hyperPoints = this.initHyperPoints()
     this.selectedCells = []
     this.hoveredCell = null
     this.rayCaster = new Raycaster()
     this.axes = this.initAxes()
-
     this.gui = this.initGui()
+
     this.setupDom()
   }
 
@@ -96,21 +156,100 @@ class Main {
     const pointLight = new PointLight(0xffffff, 1)
     this.camera.add(pointLight)
   }
-  initHyperMesh(hypermesh) {
-    const hyperMesh = new HyperMesh(this.hyperRenderer, hypermesh)
+  initHyperMesh() {
+    const shape = SHAPES[this.settings.shape]
+
+    const hyperGeometry = new HyperGeometry(
+      shape.vertices,
+      shape.faces,
+      shape.cells,
+      this.hyperRenderer
+    )
+    const materials = shape.cells.map((_, i) => {
+      const material = new MeshLambertMaterial()
+      material.opacity = 0.1
+      material.transparent = true
+      material.blending = AdditiveBlending
+      material.side = DoubleSide
+      material.depthWrite = false
+      material.wireframe = false
+      material.color = new Color(
+        COLORS[this.settings.colors][i + 1] || 0xffffff
+      )
+      return material
+    })
+
+    const hyperMesh = new HyperMesh(hyperGeometry, materials)
+
     this.scene.add(hyperMesh)
     return hyperMesh
   }
 
-  switchHyperMesh(hypermesh) {
-    if (this.debug.vertexNormals) {
+  initHyperEdges() {
+    const shape = SHAPES[this.settings.shape]
+
+    const hyperGeometry = new HyperEdgeGeometry(
+      shape.vertices,
+      shape.faces,
+      shape.cells,
+      this.hyperRenderer
+    )
+
+    const materials = shape.cells.map((_, i) => {
+      const material = new LineBasicMaterial()
+      material.opacity = 0.1
+      material.transparent = true
+      material.blending = AdditiveBlending
+      material.side = DoubleSide
+      material.depthWrite = false
+      material.wireframe = false
+      material.color = new Color(
+        COLORS[this.settings.colors][i + 1] || 0xffffff
+      )
+      return material
+    })
+    const hyperEdges = new HyperMesh(hyperGeometry, materials, LineSegments)
+    this.scene.add(hyperEdges)
+    return hyperEdges
+  }
+
+  initHyperPoints() {
+    const shape = SHAPES[this.settings.shape]
+
+    const hyperGeometry = new HyperPointsGeometry(
+      shape.vertices,
+      shape.faces,
+      shape.cells,
+      this.hyperRenderer
+    )
+
+    const materials = shape.cells.map((_, i) => {
+      const material = new PointsMaterial()
+      material.map = DOT
+      material.size = 0.25
+      material.alphaTest = 0.5
+      material.color = new Color(
+        COLORS[this.settings.colors][i + 1] || 0xffffff
+      )
+      return material
+    })
+    const hyperPoints = new HyperMesh(hyperGeometry, materials, Points)
+    this.scene.add(hyperPoints)
+    return hyperPoints
+  }
+
+  switchHyperMesh() {
+    if (this.settings.debug.vertexNormals) {
       this.handleVertex(false)
     }
-    this.hyperMesh.clear()
-    this.hyperMesh.hypermesh = hypermesh
-    this.hyperMesh.update()
+    this.scene.remove(this.hyperPoints)
+    this.scene.remove(this.hyperEdges)
+    this.scene.remove(this.hyperMesh)
+    this.hyperMesh = this.initHyperMesh()
+    this.hyperEdges = this.initHyperEdges()
+    this.hyperPoints = this.initHyperPoints()
 
-    if (this.debug.vertexNormals) {
+    if (this.settings.debug.vertexNormals) {
       this.handleVertex(true)
     }
   }
@@ -134,93 +273,77 @@ class Main {
   }
 
   initGui() {
-    const gui = new GUI()
-
+    const gui = new GUI({
+      load: presets,
+      preset:
+        decodeURIComponent(location.hash.replace(/^#/, '')) || 'Tesseract',
+    })
     gui
-      .add(
-        this,
-        'mesh',
-        Object.keys(JSON.parse(localStorage.getItem('meshes')))
-      )
-      .onChange(value =>
-        this.switchHyperMesh(JSON.parse(localStorage.getItem('meshes'))[value])
-      )
-    gui.add(
-      {
-        add: () => {
-          const localMeshes = JSON.parse(localStorage.getItem('meshes'))
-
-          const name = prompt('Name of your mesh')
-          if (name) {
-            localMeshes[name] = {
-              vertices: [],
-              faces: [],
-              cells: [],
-              colors: [],
-            }
-            localStorage.setItem('meshes', JSON.stringify(localMeshes))
-          }
-        },
-      },
-      'add'
-    )
-    gui.add(
-      {
-        edit: () => window.open(`/edit#${this.mesh}`),
-      },
-      'edit'
-    )
-    gui.add(this.hyperRenderer, 'fov', 0, Math.PI).name('w fov')
+      .add(this.settings, 'shape', Object.keys(SHAPES))
+      .onChange(this.switchHyperMesh.bind(this))
     gui
-      .add({ zfov: (this.camera.fov / 180) * Math.PI }, 'zfov', 0, Math.PI)
-      .onChange(value => {
-        this.axes.camera.fov = this.camera.fov = (value / Math.PI) * 180
-        this.camera.updateProjectionMatrix()
-        this.axes.camera.updateProjectionMatrix()
-      })
-      .listen()
-      .name('z fov')
+      .add(this.settings, 'colors', Object.keys(COLORS))
+      .onChange(this.switchHyperMesh.bind(this))
+
+    gui.add(this.settings, 'zFov', 0, 180)
+    gui.add(this.settings, 'wFov', 0, 180)
+    gui.add(this.settings, 'cellSize', 0, 100)
+
     const rot = gui.addFolder('4d rotation')
-    Object.keys(this.hyperRotation).forEach(k => {
-      rot.add(this.hyperRenderer.rotation, k, 0, 2 * Math.PI).listen()
+    PLANES.forEach(k => {
+      rot.add(this.settings.rotation, k, 0, 2 * Math.PI).listen()
     })
     const rotSpeed = gui.addFolder('4d rotation speed')
-    Object.keys(this.hyperRotation).forEach(k => {
-      rotSpeed.add(this.hyperRotation, k, 0, 50)
+    PLANES.forEach(k => {
+      rotSpeed.add(this.settings.rotationSpeed, k, 0, 50)
     })
     rotSpeed.open()
 
     const cell = gui.addFolder('Cell')
-    cell.add(this.hyperMesh, 'hasCells')
-    cell.add(this.hyperMesh, 'cellSize', 0, 100)
-    cell.add(this.hyperMesh, 'cellOpacity', 0, 1)
-    cell.add(this.hyperMesh, 'cellBlending', BLENDINGS).onChange(toNumber)
-    cell.add(this.hyperMesh, 'cellDepthWrite')
+    cell.add(this.settings.cells, 'visible')
+    cell.add(this.settings.cells, 'opacity', 0, 1)
+    cell.add(this.settings.cells, 'blending', BLENDINGS)
+    cell.add(this.settings.cells, 'depthWrite')
+    cell.add(this.settings.cells, 'wireframe')
     cell.open()
 
     const edge = gui.addFolder('Edge')
-    edge.add(this.hyperMesh, 'hasEdges')
-    edge.add(this.hyperMesh, 'edgeOpacity', 0, 1)
-    edge.add(this.hyperMesh, 'edgeBlending', BLENDINGS).onChange(toNumber)
-    edge.add(this.hyperMesh, 'edgeWidth', 0, 5)
-    edge.add(this.hyperMesh, 'edgeDepthWrite')
+    edge.add(this.settings.edges, 'visible')
+    edge.add(this.settings.edges, 'opacity', 0, 1)
+    edge.add(this.settings.edges, 'blending', BLENDINGS)
+    edge.add(this.settings.edges, 'linewidth', 0, 5)
+    edge.add(this.settings.edges, 'depthWrite')
     edge.open()
 
     const vertice = gui.addFolder('Vertice')
-    vertice.add(this.hyperMesh, 'hasVertices')
+    vertice.add(this.settings.vertices, 'visible')
 
     const guiDebug = gui.addFolder('Debug')
     guiDebug
-      .add(this.debug, 'vertexNormals')
+      .add(this.settings.debug, 'vertexNormals')
       .onChange(this.handleVertex.bind(this))
-    guiDebug.add(this.hyperMesh, 'wireframe')
 
+    gui.remember(this.settings)
+    gui.remember(this.settings.rotation)
+    gui.remember(this.settings.rotationSpeed)
+    gui.remember(this.settings.cells)
+    gui.remember(this.settings.edges)
+
+    gui.revert()
+    gui.__preset_select.addEventListener('change', ({ target: { value } }) => {
+      location.hash = `#${encodeURIComponent(value)}`
+    })
+    window.addEventListener('hashchange', () => {
+      gui.preset =
+        decodeURIComponent(location.hash.replace(/^#/, '')) || 'Tesseract'
+      gui.revert()
+    })
     return gui
   }
 
   handleVertex(on) {
     if (on) {
-      this.hyperMesh.subGroup('cell')?.children.forEach(mesh => {
+      this.hyperMesh.children.forEach(mesh => {
         this.debugGroup.add(
           new VertexNormalsHelper(mesh, 0.25, mesh.material.color)
         )
@@ -289,11 +412,30 @@ class Main {
     this.renderer.setSize(window.innerWidth, window.innerHeight)
   }
 
-  onStorage({ key, newValue }) {
-    if (key !== 'meshes') {
-      return
+  updateSettings() {
+    if (this.settings.zFov !== this.camera.fov) {
+      this.axes.camera.fov = this.camera.fov = this.settings.zFov
+      this.camera.updateProjectionMatrix()
+      this.axes.camera.updateProjectionMatrix()
     }
-    this.switchHyperMesh(JSON.parse(newValue)[this.mesh])
+    this.hyperRenderer.fov = (this.settings.wFov * Math.PI) / 180
+    this.hyperMesh.cellSize = this.hyperEdges.cellSize = this.hyperPoints.cellSize = this.settings.cellSize
+    this.hyperMesh.visible = this.settings.cells.visible
+    this.hyperMesh.materials.map(material => {
+      material.opacity = this.settings.cells.opacity
+      material.blending = +this.settings.cells.blending
+      material.transparent = this.settings.cells.opacity < 1
+      material.depthWrite = this.settings.cells.depthWrite
+    })
+    this.hyperEdges.visible = this.settings.edges.visible
+    this.hyperEdges.materials.map(material => {
+      material.opacity = this.settings.edges.opacity
+      material.blending = +this.settings.edges.blending
+      material.transparent = this.settings.edges.opacity < 1
+      material.linewidth = this.settings.edges.linewidth
+      material.depthWrite = this.settings.edges.depthWrite
+    })
+    this.hyperPoints.visible = this.settings.vertices.visible
   }
 
   render() {
@@ -301,9 +443,18 @@ class Main {
     // Updates
     this.stats.update()
 
-    this.hyperRenderer.rotate(this.hyperRotation)
-    this.hyperMesh.update()
+    this.updateSettings()
 
+    this.hyperRenderer.rotate(this.settings.rotationSpeed)
+    if (this.hyperMesh.visible) {
+      this.hyperMesh.update()
+    }
+    if (this.hyperEdges.visible) {
+      this.hyperEdges.update()
+    }
+    if (this.hyperPoints.visible) {
+      this.hyperPoints.update()
+    }
     this.debugGroup.children.map(child => child.update())
 
     this.axes.camera.position.copy(this.camera.position)
@@ -313,10 +464,7 @@ class Main {
     // Rendering
 
     // Render scene
-    this.renderer.setClearColor(
-      this.hyperMesh.hypermesh.backgroundColor || 0x000000,
-      1
-    )
+    this.renderer.setClearColor(COLORS[this.settings.colors][0], 1)
     this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.render(this.scene, this.camera)
 

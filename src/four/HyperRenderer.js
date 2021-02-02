@@ -1,9 +1,9 @@
-export class HyperRenderer {
-  constructor(fov, w) {
-    this.fov = fov || 1
+export default class HyperRenderer {
+  constructor(fov, w, initialRotation) {
+    this.fov = fov || Math.PI / 2
     this.w = w || 10 // Camera ana
 
-    this.rotation = {
+    this.rotation = initialRotation || {
       xy: 0,
       xz: 0,
       xw: 0,
@@ -13,7 +13,7 @@ export class HyperRenderer {
     }
   }
 
-  to3d([xo, yo, zo, wo]) {
+  project([xo, yo, zo, wo]) {
     const [x, y, z, w] = this.rotatePoint([xo, yo, zo, wo])
     const zoom = 1 + (w * this.fov) / this.w
     return [x / zoom, y / zoom, z / zoom]

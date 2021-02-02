@@ -57,17 +57,6 @@ export const tesseract = {
     [5, 7, 13, 9, 11, 23], // 6
     [18, 19, 20, 21, 22, 23], // 7
   ],
-  colors: [
-    '#5c6370',
-    '#e06c75',
-    '#98c379',
-    '#d19a66',
-    '#61afef',
-    '#c678dd',
-    '#56b6c2',
-    '#ffffff',
-  ],
-  backgroundColor: '#222222',
 }
 
 export const pentachoron = {
@@ -99,9 +88,6 @@ export const pentachoron = {
     [2, 4, 6, 8], // 3
     [0, 7, 8, 9], // 4
   ],
-  colors: ['#ff6188', '#a9dc76', '#ffd866', '#fc9867', '#ab9df2'],
-  backgroundColor: '#000000',
-  scale: 2.5,
 }
 
 export const hexadecachoron = {
@@ -168,25 +154,4 @@ export const hexadecachoron = {
     [17, 18, 22, 30], // 14  v: 1, 3, 5, 6
     [17, 19, 23, 31], // 15  v: 1, 3, 5, 7
   ],
-  colors: [
-    '#5c6370',
-    '#e06c75',
-    '#98c379',
-    '#d19a66',
-    '#61afef',
-    '#c678dd',
-    '#56b6c2',
-    '#ffffff',
-
-    '#403e41',
-    '#ff6188',
-    '#a9dc76',
-    '#ffd866',
-    '#fc9867',
-    '#ab9df2',
-    '#78dce8',
-    '#fcfcfa',
-  ],
-  backgroundColor: '#222222',
-  scale: 2.5,
 }
