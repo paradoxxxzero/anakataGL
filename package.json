@@ -15,6 +15,7 @@
   "dependencies": {
     "codemirror": "^5.59.2",
     "dat.gui": "^0.7.7",
+    "four-js": "^0.1.0",
     "stats.js": "^0.17.0",
     "three": "^0.125.1"
   },

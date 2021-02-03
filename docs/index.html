@@ -4,11 +4,23 @@
     <meta charset="utf-8">
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" type="text/css" href="/index.css" />
+    <link rel="stylesheet" type="text/css" href="index.css" />
     <title>Anakata</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <script type="module" src="/dist/index.js"></script>
+    <script type="module" src="dist/index.js"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-154485454-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+      gtag('config', 'UA-154485454-1')
+    </script>
   </body>
 </html>

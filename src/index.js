@@ -1,4 +1,12 @@
 import { GUI } from 'dat.gui'
+import {
+  HyperEdgeGeometry,
+  HyperGeometry,
+  HyperMesh,
+  HyperPointsGeometry,
+  HyperRenderer,
+  shapes,
+} from 'four-js'
 import Stats from 'stats.js'
 import {
   AdditiveBlending,
@@ -29,12 +37,6 @@ import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHel
 import { Axes } from './axes'
 import COLORS from './colors'
 import disc from './disc.png'
-import HyperEdgeGeometry from './four/HyperEdgeGeometry'
-import HyperGeometry from './four/HyperGeometry'
-import HyperMesh from './four/HyperMesh'
-import HyperPointsGeometry from './four/HyperPointsGeometry'
-import HyperRenderer from './four/HyperRenderer'
-import * as SHAPES from './four/shapes'
 import presets from './presets'
 
 const BLENDINGS = {
@@ -157,7 +159,7 @@ class Main {
     this.camera.add(pointLight)
   }
   initHyperMesh() {
-    const shape = SHAPES[this.settings.shape]
+    const shape = shapes[this.settings.shape]
 
     const hyperGeometry = new HyperGeometry(
       shape.vertices,
@@ -186,7 +188,7 @@ class Main {
   }
 
   initHyperEdges() {
-    const shape = SHAPES[this.settings.shape]
+    const shape = shapes[this.settings.shape]
 
     const hyperGeometry = new HyperEdgeGeometry(
       shape.vertices,
@@ -214,7 +216,7 @@ class Main {
   }
 
   initHyperPoints() {
-    const shape = SHAPES[this.settings.shape]
+    const shape = shapes[this.settings.shape]
 
     const hyperGeometry = new HyperPointsGeometry(
       shape.vertices,
@@ -279,7 +281,7 @@ class Main {
         decodeURIComponent(location.hash.replace(/^#/, '')) || 'Tesseract',
     })
     gui
-      .add(this.settings, 'shape', Object.keys(SHAPES))
+      .add(this.settings, 'shape', Object.keys(shapes))
       .onChange(this.switchHyperMesh.bind(this))
     gui
       .add(this.settings, 'colors', Object.keys(COLORS))

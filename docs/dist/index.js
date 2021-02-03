@@ -1,4 +1,12 @@
 import { GUI } from '../_snowpack/pkg/dat.gui.js'
+import {
+  HyperEdgeGeometry,
+  HyperGeometry,
+  HyperMesh,
+  HyperPointsGeometry,
+  HyperRenderer,
+  shapes,
+} from '../_snowpack/pkg/four-js.js'
 import Stats from '../_snowpack/pkg/statsjs.js'
 import {
   AdditiveBlending,
@@ -29,12 +37,6 @@ import { VertexNormalsHelper } from '../_snowpack/pkg/three/examples/jsm/helpers
 import { Axes } from './axes.js'
 import COLORS from './colors.js'
 import disc from './disc.png.proxy.js'
-import HyperEdgeGeometry from './four/HyperEdgeGeometry.js'
-import HyperGeometry from './four/HyperGeometry.js'
-import HyperMesh from './four/HyperMesh.js'
-import HyperPointsGeometry from './four/HyperPointsGeometry.js'
-import HyperRenderer from './four/HyperRenderer.js'
-import * as SHAPES from './four/shapes.js'
 import presets from './presets.js'
 
 const BLENDINGS = {
@@ -157,7 +159,7 @@ class Main {
     this.camera.add(pointLight)
   }
   initHyperMesh() {
-    const shape = SHAPES[this.settings.shape]
+    const shape = shapes[this.settings.shape]
 
     const hyperGeometry = new HyperGeometry(
       shape.vertices,
@@ -186,7 +188,7 @@ class Main {
   }
 
   initHyperEdges() {
-    const shape = SHAPES[this.settings.shape]
+    const shape = shapes[this.settings.shape]
 
     const hyperGeometry = new HyperEdgeGeometry(
       shape.vertices,
@@ -214,7 +216,7 @@ class Main {
   }
 
   initHyperPoints() {
-    const shape = SHAPES[this.settings.shape]
+    const shape = shapes[this.settings.shape]
 
     const hyperGeometry = new HyperPointsGeometry(
       shape.vertices,
@@ -279,7 +281,7 @@ class Main {
         decodeURIComponent(location.hash.replace(/^#/, '')) || 'Tesseract',
     })
     gui
-      .add(this.settings, 'shape', Object.keys(SHAPES))
+      .add(this.settings, 'shape', Object.keys(shapes))
       .onChange(this.switchHyperMesh.bind(this))
     gui
       .add(this.settings, 'colors', Object.keys(COLORS))
