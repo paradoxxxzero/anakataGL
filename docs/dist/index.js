@@ -167,6 +167,7 @@ class Main {
       shape.cells,
       this.hyperRenderer
     )
+    const colors = COLORS[this.settings.colors].slice(1)
     const materials = shape.cells.map((_, i) => {
       const material = new MeshLambertMaterial()
       material.opacity = 0.1
@@ -175,9 +176,7 @@ class Main {
       material.side = DoubleSide
       material.depthWrite = false
       material.wireframe = false
-      material.color = new Color(
-        COLORS[this.settings.colors][i + 1] || 0xffffff
-      )
+      material.color = new Color(colors[i % colors.length])
       return material
     })
 
@@ -197,6 +196,7 @@ class Main {
       this.hyperRenderer
     )
 
+    const colors = COLORS[this.settings.colors].slice(1)
     const materials = shape.cells.map((_, i) => {
       const material = new LineBasicMaterial()
       material.opacity = 0.1
@@ -204,10 +204,8 @@ class Main {
       material.blending = AdditiveBlending
       material.side = DoubleSide
       material.depthWrite = false
-      material.wireframe = false
-      material.color = new Color(
-        COLORS[this.settings.colors][i + 1] || 0xffffff
-      )
+      material.linewidth = 2
+      material.color = new Color(colors[i % colors.length])
       return material
     })
     const hyperEdges = new HyperMesh(hyperGeometry, materials, LineSegments)
@@ -225,14 +223,13 @@ class Main {
       this.hyperRenderer
     )
 
+    const colors = COLORS[this.settings.colors].slice(1)
     const materials = shape.cells.map((_, i) => {
       const material = new PointsMaterial()
       material.map = DOT
       material.size = 0.25
       material.alphaTest = 0.5
-      material.color = new Color(
-        COLORS[this.settings.colors][i + 1] || 0xffffff
-      )
+      material.color = new Color(colors[i % colors.length])
       return material
     })
     const hyperPoints = new HyperMesh(hyperGeometry, materials, Points)

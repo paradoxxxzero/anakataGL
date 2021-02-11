@@ -397,10 +397,10 @@ eslint-visitor-keys@^2.0.0:
   resolved "https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-2.0.0.tgz#21fdc8fbcd9c795cc0321f0563702095751511a8"
   integrity sha512-QudtT6av5WXels9WjIM7qz1XD1cWGvX4gGXvp/zBn9nXG02D0utdU3Em2m/QjTnrsk6bBjmCygl3rmj118msQQ==
 
-eslint@^7.18.0:
-  version "7.18.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-7.18.0.tgz#7fdcd2f3715a41fe6295a16234bd69aed2c75e67"
-  integrity sha512-fbgTiE8BfUJZuBeq2Yi7J3RB3WGUQ9PNuNbmgi6jt9Iv8qrkxfy19Ds3OpL1Pm7zg3BtTVhvcUZbIRQ0wmSjAQ==
+eslint@^7.19.0:
+  version "7.19.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-7.19.0.tgz#6719621b196b5fad72e43387981314e5d0dc3f41"
+  integrity sha512-CGlMgJY56JZ9ZSYhJuhow61lMPPjUzWmChFya71Z/jilVos7mR/jPgaEfVGgMBY5DshbKdG8Ezb8FDCHcoMEMg==
   dependencies:
     "@babel/code-frame" "^7.0.0"
     "@eslint/eslintrc" "^0.3.0"
@@ -530,10 +530,10 @@ flatted@^3.1.0:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.1.1.tgz#c4b489e80096d9df1dfc97c79871aea7c617c469"
   integrity sha512-zAoAQiudy+r5SvnSw3KJy5os/oRJYHzrzja/tBDqrZtNhUw8bt6y8OBzMWcjWr+8liV8Eb6yOhw8WZ7VFZ5ZzA==
 
-four-js@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/four-js/-/four-js-0.1.0.tgz#ecc0516ee3b89f2a0ebec6ab5dc093e36e8d930c"
-  integrity sha512-vRewSH2TPHrXJrj6Ug4dCXG3KdGE0BTvS3UJogemPGfdBY8jB+Ih+SIFiOg3NXEOjISc+heGnbWKs/3MMx4eXA==
+four-js@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/four-js/-/four-js-0.1.1.tgz#7e564063744b97dd010e62577ea81af649caee38"
+  integrity sha512-FfhiQYqtmx03ur1Hl7CJ9t8lpyIt12svdG3fNod2H7hhxJITDj10aj8UhOJM5GxawieZmVoSrRFJ5Yxn654e0w==
 
 fs.realpath@^1.0.0:
   version "1.0.0"

@@ -8,19 +8,19 @@
   ],
   "scripts": {
     "start": "snowpack dev",
-    "build": "snowpack build",
+    "build": "snowpack build && touch docs/.nojekyll",
     "format": "prettier --write \"src/**/*.js\"",
     "lint": "prettier --check \"src/**/*.js\""
   },
   "dependencies": {
     "codemirror": "^5.59.2",
     "dat.gui": "^0.7.7",
-    "four-js": "^0.1.0",
+    "four-js": "^0.1.1",
     "stats.js": "^0.17.0",
     "three": "^0.125.1"
   },
   "devDependencies": {
-    "eslint": "^7.18.0",
+    "eslint": "^7.19.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.3.1",
