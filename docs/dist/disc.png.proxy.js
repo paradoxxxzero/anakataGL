@@ -1,1 +1,1 @@
-export default "/dist/disc.png";
+export default "/anakataGL/dist/disc.png";
