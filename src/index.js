@@ -48,58 +48,28 @@ const BLENDINGS = {
   CustomBlending,
 }
 
+const getPreset = () =>
+  decodeURIComponent(location.hash.replace(/^#/, '')) || presets.preset
+const preset = getPreset()
+
 const PLANES = ['xy', 'xz', 'xw', 'yz', 'yw', 'zw']
 const DOT = new TextureLoader().load(disc)
 
 class Main {
   constructor() {
+    const remembered = presets.remembered[preset]
     this.settings = {
-      shape: 'tesseract',
-      colors: 'onedarkterminator',
-      zFov: 90,
-      wFov: 90,
-      cellSize: 100,
-      rotation: {
-        xy: 0,
-        xz: 0,
-        xw: 10,
-        yz: 0,
-        yw: 10,
-        zw: 10,
-      },
-      rotationSpeed: {
-        xy: 0,
-        xz: 0,
-        xw: 10,
-        yz: 0,
-        yw: 10,
-        zw: 10,
-      },
-      cells: {
-        visible: true,
-        opacity: 0.1,
-        blending: AdditiveBlending,
-        depthWrite: false,
-        wireframe: false,
-      },
-      edges: {
-        visible: true,
-        opacity: 0.04,
-        blending: AdditiveBlending,
-        linewidth: 2,
-        depthWrite: false,
-      },
-      vertices: {
-        visible: false,
-      },
+      ...remembered[0],
+      rotation: remembered[1],
+      rotationSpeed: remembered[2],
+      cells: remembered[3],
+      edges: remembered[4],
+      vertices: remembered[5],
       debug: {
         vertexNormals: false,
       },
     }
 
-    this.debug = {
-      vertexNormals: false,
-    }
     this.debugGroup = new Group()
 
     this.stats = new Stats()
@@ -132,23 +102,28 @@ class Main {
     })
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.xr.enabled = true
+
     return renderer
   }
   initCamera() {
     const camera = new PerspectiveCamera(
       (this.hyperRenderer.fov / Math.PI) * 180,
       window.innerWidth / window.innerHeight,
-      1,
+      0.01,
       100
     )
-    camera.position.set(5, 5, 5)
+    camera.position.set(0, 1.6, 3)
     this.scene.add(camera)
+
     return camera
   }
   initControls() {
     const controls = new OrbitControls(this.camera, this.renderer.domElement)
     controls.minDistance = 2
     controls.maxDistance = 50
+    controls.target.set(0, 1.6, -3)
+    controls.update()
     return controls
   }
   initLights() {
@@ -181,7 +156,7 @@ class Main {
     })
 
     const hyperMesh = new HyperMesh(hyperGeometry, materials)
-
+    hyperMesh.position.set(0, 1.6, -3)
     this.scene.add(hyperMesh)
     return hyperMesh
   }
@@ -209,6 +184,7 @@ class Main {
       return material
     })
     const hyperEdges = new HyperMesh(hyperGeometry, materials, LineSegments)
+    hyperEdges.position.set(0, 1.6, -3)
     this.scene.add(hyperEdges)
     return hyperEdges
   }
@@ -233,6 +209,7 @@ class Main {
       return material
     })
     const hyperPoints = new HyperMesh(hyperGeometry, materials, Points)
+    hyperPoints.position.set(0, 1.6, -3)
     this.scene.add(hyperPoints)
     return hyperPoints
   }
@@ -271,12 +248,32 @@ class Main {
     return axes
   }
 
-  initGui() {
+  async enterVR() {
+    const sessionInit = {
+      optionalFeatures: ['local-floor', 'bounded-floor'],
+    }
+    const session = await navigator.xr.requestSession(
+      'immersive-vr',
+      sessionInit
+    )
+
+    await this.renderer.xr.setSession(session)
+  }
+
+  async initGui() {
     const gui = new GUI({
       load: presets,
-      preset:
-        decodeURIComponent(location.hash.replace(/^#/, '')) || 'Tesseract',
+      preset,
     })
+    const hasVR = await navigator.xr.isSessionSupported('immersive-vr')
+    if (hasVR) {
+      gui.add(
+        {
+          'Enter VR': this.enterVR.bind(this),
+        },
+        'Enter VR'
+      )
+    }
     gui
       .add(this.settings, 'shape', Object.keys(shapes))
       .onChange(this.switchHyperMesh.bind(this))
@@ -287,6 +284,7 @@ class Main {
     gui.add(this.settings, 'zFov', 0, 180)
     gui.add(this.settings, 'wFov', 0, 180)
     gui.add(this.settings, 'cellSize', 0, 100)
+    gui.add(this.settings, 'scale', 0, 10, 0.1)
 
     const rot = gui.addFolder('4d rotation')
     PLANES.forEach(k => {
@@ -327,14 +325,14 @@ class Main {
     gui.remember(this.settings.rotationSpeed)
     gui.remember(this.settings.cells)
     gui.remember(this.settings.edges)
+    gui.remember(this.settings.vertices)
 
     gui.revert()
     gui.__preset_select.addEventListener('change', ({ target: { value } }) => {
       location.hash = `#${encodeURIComponent(value)}`
     })
     window.addEventListener('hashchange', () => {
-      gui.preset =
-        decodeURIComponent(location.hash.replace(/^#/, '')) || 'Tesseract'
+      gui.preset = getPreset()
       gui.revert()
     })
     return gui
@@ -420,6 +418,7 @@ class Main {
     this.hyperRenderer.fov = (this.settings.wFov * Math.PI) / 180
     this.hyperMesh.cellSize = this.hyperEdges.cellSize = this.hyperPoints.cellSize = this.settings.cellSize
     this.hyperMesh.visible = this.settings.cells.visible
+    this.hyperMesh.scale.setScalar(this.settings.scale)
     this.hyperMesh.materials.map(material => {
       material.opacity = this.settings.cells.opacity
       material.blending = +this.settings.cells.blending
@@ -427,6 +426,7 @@ class Main {
       material.depthWrite = this.settings.cells.depthWrite
     })
     this.hyperEdges.visible = this.settings.edges.visible
+    this.hyperEdges.scale.setScalar(this.settings.scale)
     this.hyperEdges.materials.map(material => {
       material.opacity = this.settings.edges.opacity
       material.blending = +this.settings.edges.blending
@@ -435,10 +435,11 @@ class Main {
       material.depthWrite = this.settings.edges.depthWrite
     })
     this.hyperPoints.visible = this.settings.vertices.visible
+    this.hyperPoints.scale.setScalar(this.settings.scale)
   }
 
   render() {
-    requestAnimationFrame(this.render.bind(this))
+    // requestAnimationFrame(this.render.bind(this))
     // Updates
     this.stats.update()
 
@@ -488,4 +489,6 @@ class Main {
 }
 
 window.anakata = new Main()
-window.anakata.render()
+window.anakata.renderer.setAnimationLoop(
+  window.anakata.render.bind(window.anakata)
+)

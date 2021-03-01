@@ -4,9 +4,10 @@ export default {
       0: {
         shape: 'tesseract',
         colors: 'onedarkterminator',
-        zFov: 60,
+        zFov: 90,
         wFov: 90,
         cellSize: 100,
+        scale: 1.25,
       },
       1: {
         xy: 0,
@@ -29,6 +30,7 @@ export default {
         opacity: 0.1,
         blending: 2,
         depthWrite: false,
+        wireframe: false,
       },
       4: {
         visible: true,
@@ -37,14 +39,18 @@ export default {
         linewidth: 2,
         depthWrite: false,
       },
+      5: {
+        visible: false,
+      },
     },
     Pentachoron: {
       0: {
         shape: 'pentachoron',
         colors: 'material',
-        zFov: 50,
+        zFov: 90,
         wFov: 90,
         cellSize: 100,
+        scale: 1.5,
       },
       1: {
         xy: 0,
@@ -76,14 +82,18 @@ export default {
         linewidth: 1,
         depthWrite: false,
       },
+      5: {
+        visible: false,
+      },
     },
     Hexadecachoron: {
       0: {
         shape: 'hexadecachoron',
         colors: 'onedarkterminator',
-        zFov: 25,
+        zFov: 90,
         wFov: 90,
         cellSize: 100,
+        scale: 3.5,
       },
       1: {
         xy: 0,
@@ -115,14 +125,18 @@ export default {
         linewidth: 1.5,
         depthWrite: false,
       },
+      5: {
+        visible: false,
+      },
     },
     SolidTesseract: {
       0: {
         shape: 'tesseract',
         colors: 'material',
-        zFov: 60,
+        zFov: 90,
         wFov: 90,
         cellSize: 100,
+        scale: 1.25,
       },
       1: {
         xy: 0,
@@ -153,14 +167,18 @@ export default {
         linewidth: 2,
         depthWrite: false,
       },
+      5: {
+        visible: false,
+      },
     },
     NeonTesseract: {
       0: {
         shape: 'tesseract',
         colors: 'zenburn',
-        zFov: 60,
+        zFov: 90,
         wFov: 90,
         cellSize: 100,
+        scale: 1.25,
       },
       1: {
         xy: 0,
@@ -183,6 +201,7 @@ export default {
         opacity: 0.05,
         blending: '2',
         depthWrite: false,
+        wireframe: false,
       },
       4: {
         visible: true,
@@ -191,14 +210,18 @@ export default {
         linewidth: 5,
         depthWrite: false,
       },
+      5: {
+        visible: false,
+      },
     },
     '3-sphere': {
       0: {
         shape: 'threesphere',
         colors: 'zenburn',
-        zFov: 25,
+        zFov: 90,
         wFov: 150,
         cellSize: 100,
+        scale: 3,
       },
       1: {
         xy: 0,
@@ -230,14 +253,18 @@ export default {
         linewidth: 0.5,
         depthWrite: false,
       },
+      5: {
+        visible: false,
+      },
     },
     '3-sphere-edges': {
       0: {
         shape: 'threesphere',
         colors: 'zenburn',
-        zFov: 25,
+        zFov: 90,
         wFov: 150,
         cellSize: 100,
+        scale: 3,
       },
       1: {
         xy: 0,
@@ -269,14 +296,18 @@ export default {
         linewidth: 1.5,
         depthWrite: false,
       },
+      5: {
+        visible: false,
+      },
     },
     '3-sphere-minecraft': {
       0: {
         shape: 'threesphere',
         colors: 'sweetlove',
-        zFov: 25,
+        zFov: 90,
         wFov: 90,
         cellSize: 100,
+        scale: 3,
       },
       1: {
         xy: 0,
@@ -308,9 +339,12 @@ export default {
         linewidth: 0.5,
         depthWrite: false,
       },
+      5: {
+        visible: false,
+      },
     },
   },
-  preset: 'Hexadecachoron',
+  preset: 'Tesseract',
   closed: false,
   folders: {
     '4d rotation': {
