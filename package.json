@@ -13,19 +13,19 @@
     "lint": "prettier --check \"src/**/*.js\""
   },
   "dependencies": {
-    "codemirror": "^5.59.2",
+    "codemirror": "^5.59.4",
     "dat.gui": "^0.7.7",
-    "four-js": "^0.1.1",
+    "four-js": "^0.1.2",
     "stats.js": "^0.17.0",
-    "three": "^0.125.1"
+    "three": "^0.126.0"
   },
   "devDependencies": {
-    "eslint": "^7.19.0",
-    "eslint-config-prettier": "^7.2.0",
+    "eslint": "^7.21.0",
+    "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.3.1",
     "prettier": "^2.0.5",
-    "snowpack": "^3.0.1"
+    "snowpack": "^3.0.13"
   },
   "version": "0.2.0"
 }

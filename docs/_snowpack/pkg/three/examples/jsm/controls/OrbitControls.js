@@ -1,4 +1,4 @@
-import { V as Vector3, o as MOUSE, p as TOUCH, Q as Quaternion, q as Spherical, n as Vector2, E as EventDispatcher } from '../../../../common/three.module-c5cfdece.js';
+import { V as Vector3, o as MOUSE, p as TOUCH, Q as Quaternion, q as Spherical, E as EventDispatcher, n as Vector2 } from '../../../../common/three.module-5e57e5f8.js';
 
 // This set of controls performs orbiting, dollying (zooming), and panning.
 // Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
@@ -62,7 +62,7 @@ var OrbitControls = function ( object, domElement ) {
 	// Set to true to automatically rotate around the target
 	// If auto-rotate is enabled, you must call controls.update() in your animation loop
 	this.autoRotate = false;
-	this.autoRotateSpeed = 2.0; // 30 seconds per round when fps is 60
+	this.autoRotateSpeed = 2.0; // 30 seconds per orbit when fps is 60
 
 	// The four arrow keys
 	this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
