@@ -265,7 +265,8 @@ class Main {
       load: presets,
       preset,
     })
-    const hasVR = await navigator.xr.isSessionSupported('immersive-vr')
+    const hasVR =
+      navigator.xr && (await navigator.xr.isSessionSupported('immersive-vr'))
     if (hasVR) {
       gui.add(
         {
