@@ -82,6 +82,7 @@ class Main {
     this.camera = this.initCamera()
     this.controls = this.initControls()
     this.initLights()
+    this.shape = this.getShape()
 
     this.hyperMesh = this.initHyperMesh()
     this.hyperEdges = this.initHyperEdges()
@@ -134,16 +135,14 @@ class Main {
     this.camera.add(pointLight)
   }
   initHyperMesh() {
-    const shape = shapes[this.settings.shape]
-
     const hyperGeometry = new HyperGeometry(
-      shape.vertices,
-      shape.faces,
-      shape.cells,
+      this.shape.vertices,
+      this.shape.faces,
+      this.shape.cells,
       this.hyperRenderer
     )
     const colors = COLORS[this.settings.colors].slice(1)
-    const materials = shape.cells.map((_, i) => {
+    const materials = this.shape.cells.map((_, i) => {
       const material = new MeshLambertMaterial()
       material.opacity = 0.1
       material.transparent = true
@@ -162,17 +161,15 @@ class Main {
   }
 
   initHyperEdges() {
-    const shape = shapes[this.settings.shape]
-
     const hyperGeometry = new HyperEdgeGeometry(
-      shape.vertices,
-      shape.faces,
-      shape.cells,
+      this.shape.vertices,
+      this.shape.faces,
+      this.shape.cells,
       this.hyperRenderer
     )
 
     const colors = COLORS[this.settings.colors].slice(1)
-    const materials = shape.cells.map((_, i) => {
+    const materials = this.shape.cells.map((_, i) => {
       const material = new LineBasicMaterial()
       material.opacity = 0.1
       material.transparent = true
@@ -190,17 +187,15 @@ class Main {
   }
 
   initHyperPoints() {
-    const shape = shapes[this.settings.shape]
-
     const hyperGeometry = new HyperPointsGeometry(
-      shape.vertices,
-      shape.faces,
-      shape.cells,
+      this.shape.vertices,
+      this.shape.faces,
+      this.shape.cells,
       this.hyperRenderer
     )
 
     const colors = COLORS[this.settings.colors].slice(1)
-    const materials = shape.cells.map((_, i) => {
+    const materials = this.shape.cells.map((_, i) => {
       const material = new PointsMaterial()
       material.map = DOT
       material.size = 0.25
@@ -221,12 +216,55 @@ class Main {
     this.scene.remove(this.hyperPoints)
     this.scene.remove(this.hyperEdges)
     this.scene.remove(this.hyperMesh)
+
+    this.shape = this.getShape()
     this.hyperMesh = this.initHyperMesh()
     this.hyperEdges = this.initHyperEdges()
     this.hyperPoints = this.initHyperPoints()
 
     if (this.settings.debug.vertexNormals) {
       this.handleVertex(true)
+    }
+  }
+
+  getShape() {
+    const {
+      x: fx,
+      y: fy,
+      z: fz,
+      w: fw,
+      uMin,
+      uMax,
+      uResolution,
+      uInclusive,
+      vMin,
+      vMax,
+      vResolution,
+      vInclusive,
+      wMin,
+      wMax,
+      wResolution,
+      wInclusive,
+      withUCells,
+      withVCells,
+      withWCells,
+    } = this.settings
+    if (!this.settings.shape.startsWith('generate')) {
+      return shapes[this.settings.shape]
+    } else if (this.settings.shape === 'generateUVWHyperSurface') {
+      return shapes[this.settings.shape](
+        this.eval(fx, fy, fz, fw),
+        [uMin, uMax, uResolution, uInclusive],
+        [vMin, vMax, vResolution, vInclusive],
+        [wMin, wMax, wResolution, wInclusive],
+        { u: withUCells, v: withVCells, w: withWCells }
+      )
+    } else if (this.settings.shape === 'generateUVSurface') {
+      return shapes[this.settings.shape](
+        this.eval(fx, fy, fz, fw),
+        [uMin, uMax, uResolution, uInclusive],
+        [vMin, vMax, vResolution, vInclusive]
+      )
     }
   }
 
@@ -280,10 +318,70 @@ class Main {
         this.settings,
         'shape',
         Object.keys(shapes).filter(
-          name => !name.startsWith('generate')
-          // || ['generateUVSurface', 'generateUVWHyperSurface'].includes(name)
+          name =>
+            !name.startsWith('generate') ||
+            ['generateUVSurface', 'generateUVWHyperSurface'].includes(name)
         )
       )
+      .onChange(this.switchHyperMesh.bind(this))
+
+    const uvw = gui.addFolder('uvw')
+    uvw
+      .add(this.settings, 'x', 'cos(v) * cos(u)')
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'y', 'cos(v) * sin(u)')
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'z', 'sin(v) * cos(u)')
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'w', 'sin(v) * sin(u)')
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'uMin', -1000, 1000, 0.001)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'uMax', -1000, 1000, 0.001)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'uInclusive', false)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'uResolution', 0, 128, 1)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'vMin', -1000, 1000, 0.001)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'vMax', -1000, 1000, 0.001)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'vInclusive', false)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'vResolution', 0, 128, 1)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'wMin', -1000, 1000, 0.001)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'wMax', -1000, 1000, 0.001)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'wInclusive', false)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'wResolution', 0, 128, 1)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'withUCells', true)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'withVCells', true)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'withWCells', true)
       .onChange(this.switchHyperMesh.bind(this))
 
     gui
@@ -344,6 +442,9 @@ class Main {
       gui.preset = getPreset()
       gui.revert()
     })
+    if (window.innerWidth < 600) {
+      gui.close()
+    }
     return gui
   }
 
@@ -356,6 +457,38 @@ class Main {
       })
     } else {
       this.debugGroup.clear()
+    }
+  }
+
+  eval(fx, fy, fz, fw) {
+    const getFunction = f => {
+      try {
+        return new Function(
+          'u',
+          'v',
+          'w',
+          `
+        const {
+      E, LN2, LN10, LOG2E, LOG10E, PI, SQRT1_2, SQRT2, abs, acos, acosh, asin, asinh, atan, atan2, atanh, cbrt, ceil, clz32, cos, cosh, exp, expm1, floor, fround, hypot, imul, log, log1p, log2, log10, max, min, pow, random, round, sign, sin, sinh, sqrt, tan, tanh, trunc,
+    } = Math
+    try {
+      return ${f}
+    } catch (e) {
+      return 0
+    }
+    `
+        )
+      } catch (e) {
+        return () => 0
+      }
+    }
+    const Fx = getFunction(fx)
+    const Fy = getFunction(fy)
+    const Fz = getFunction(fz)
+    const Fw = getFunction(fw)
+
+    return (u, v, w) => {
+      return [Fx(u, v, w), Fy(u, v, w), Fz(u, v, w), Fw(u, v, w)]
     }
   }
 
