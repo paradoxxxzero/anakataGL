@@ -260,7 +260,7 @@ export default {
     },
     'Grand Antiprism': {
       0: {
-        shape: 'grandantiprism',
+        shape: 'grandAntiPrism',
         colors: 'onedarkterminator',
         zFov: 90,
         wFov: 90,
@@ -303,7 +303,7 @@ export default {
     },
     'Cubic Pyramid': {
       0: {
-        shape: 'cubicpyramid',
+        shape: 'cubicPyramid',
         colors: 'onedarkterminator',
         zFov: 90,
         wFov: 90,
@@ -431,7 +431,7 @@ export default {
     },
     '3-sphere': {
       0: {
-        shape: 'threesphere',
+        shape: 'glome',
         colors: 'zenburn',
         zFov: 90,
         wFov: 90,
@@ -474,7 +474,7 @@ export default {
     },
     '3-torus': {
       0: {
-        shape: 'threetorus',
+        shape: 'diTorus',
         colors: 'zenburn',
         zFov: 90,
         wFov: 90,
@@ -517,7 +517,7 @@ export default {
     },
     '3-sphere-edges': {
       0: {
-        shape: 'threesphere',
+        shape: 'glome',
         colors: 'zenburn',
         zFov: 90,
         wFov: 90,
@@ -560,7 +560,7 @@ export default {
     },
     '3-sphere-minecraft': {
       0: {
-        shape: 'threesphere',
+        shape: 'glome',
         colors: 'sweetlove',
         zFov: 90,
         wFov: 90,

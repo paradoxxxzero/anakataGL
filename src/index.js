@@ -47,6 +47,7 @@ const BLENDINGS = {
   SubtractiveBlending,
   CustomBlending,
 }
+console.log(shapes)
 
 const getPreset = () =>
   decodeURIComponent(location.hash.replace(/^#/, '')) || presets.preset
@@ -417,7 +418,10 @@ class Main {
       this.axes.camera.updateProjectionMatrix()
     }
     this.hyperRenderer.fov = (this.settings.wFov * Math.PI) / 180
-    this.hyperMesh.cellSize = this.hyperEdges.cellSize = this.hyperPoints.cellSize = this.settings.cellSize
+    this.hyperMesh.cellSize =
+      this.hyperEdges.cellSize =
+      this.hyperPoints.cellSize =
+        this.settings.cellSize
     this.hyperMesh.visible = this.settings.cells.visible
     this.hyperMesh.scale.setScalar(this.settings.scale)
     this.hyperMesh.materials.map(material => {
