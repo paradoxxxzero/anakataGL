@@ -276,8 +276,16 @@ class Main {
       )
     }
     gui
-      .add(this.settings, 'shape', Object.keys(shapes))
+      .add(
+        this.settings,
+        'shape',
+        Object.keys(shapes).filter(
+          name => !name.startsWith('generate')
+          // || ['generateUVSurface', 'generateUVWHyperSurface'].includes(name)
+        )
+      )
       .onChange(this.switchHyperMesh.bind(this))
+
     gui
       .add(this.settings, 'colors', Object.keys(COLORS))
       .onChange(this.switchHyperMesh.bind(this))
@@ -417,7 +425,10 @@ class Main {
       this.axes.camera.updateProjectionMatrix()
     }
     this.hyperRenderer.fov = (this.settings.wFov * Math.PI) / 180
-    this.hyperMesh.cellSize = this.hyperEdges.cellSize = this.hyperPoints.cellSize = this.settings.cellSize
+    this.hyperMesh.cellSize =
+      this.hyperEdges.cellSize =
+      this.hyperPoints.cellSize =
+        this.settings.cellSize
     this.hyperMesh.visible = this.settings.cells.visible
     this.hyperMesh.scale.setScalar(this.settings.scale)
     this.hyperMesh.materials.map(material => {

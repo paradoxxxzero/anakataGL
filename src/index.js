@@ -47,7 +47,6 @@ const BLENDINGS = {
   SubtractiveBlending,
   CustomBlending,
 }
-console.log(shapes)
 
 const getPreset = () =>
   decodeURIComponent(location.hash.replace(/^#/, '')) || presets.preset
@@ -277,8 +276,16 @@ class Main {
       )
     }
     gui
-      .add(this.settings, 'shape', Object.keys(shapes))
+      .add(
+        this.settings,
+        'shape',
+        Object.keys(shapes).filter(
+          name => !name.startsWith('generate')
+          // || ['generateUVSurface', 'generateUVWHyperSurface'].includes(name)
+        )
+      )
       .onChange(this.switchHyperMesh.bind(this))
+
     gui
       .add(this.settings, 'colors', Object.keys(COLORS))
       .onChange(this.switchHyperMesh.bind(this))
