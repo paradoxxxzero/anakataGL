@@ -237,14 +237,17 @@ class Main {
       uMax,
       uResolution,
       uInclusive,
+      uLoop,
       vMin,
       vMax,
       vResolution,
       vInclusive,
+      vLoop,
       wMin,
       wMax,
       wResolution,
       wInclusive,
+      wLoop,
       withUCells,
       withVCells,
       withWCells,
@@ -254,16 +257,16 @@ class Main {
     } else if (this.settings.shape === 'generateUVWHyperSurface') {
       return shapes[this.settings.shape](
         this.eval(fx, fy, fz, fw),
-        [uMin, uMax, uResolution, uInclusive],
-        [vMin, vMax, vResolution, vInclusive],
-        [wMin, wMax, wResolution, wInclusive],
+        [uMin, uMax, uResolution, uInclusive, uLoop],
+        [vMin, vMax, vResolution, vInclusive, vLoop],
+        [wMin, wMax, wResolution, wInclusive, wLoop],
         { u: withUCells, v: withVCells, w: withWCells }
       )
     } else if (this.settings.shape === 'generateUVSurface') {
       return shapes[this.settings.shape](
         this.eval(fx, fy, fz, fw),
-        [uMin, uMax, uResolution, uInclusive],
-        [vMin, vMax, vResolution, vInclusive]
+        [uMin, uMax, uResolution, uInclusive, uLoop],
+        [vMin, vMax, vResolution, vInclusive, vLoop]
       )
     }
   }
@@ -348,6 +351,9 @@ class Main {
       .add(this.settings, 'uInclusive', false)
       .onChange(this.switchHyperMesh.bind(this))
     uvw
+      .add(this.settings, 'uLoop', false)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
       .add(this.settings, 'uResolution', 0, 128, 1)
       .onChange(this.switchHyperMesh.bind(this))
     uvw
@@ -360,6 +366,9 @@ class Main {
       .add(this.settings, 'vInclusive', false)
       .onChange(this.switchHyperMesh.bind(this))
     uvw
+      .add(this.settings, 'vLoop', false)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
       .add(this.settings, 'vResolution', 0, 128, 1)
       .onChange(this.switchHyperMesh.bind(this))
     uvw
@@ -370,6 +379,9 @@ class Main {
       .onChange(this.switchHyperMesh.bind(this))
     uvw
       .add(this.settings, 'wInclusive', false)
+      .onChange(this.switchHyperMesh.bind(this))
+    uvw
+      .add(this.settings, 'wLoop', false)
       .onChange(this.switchHyperMesh.bind(this))
     uvw
       .add(this.settings, 'wResolution', 0, 128, 1)
