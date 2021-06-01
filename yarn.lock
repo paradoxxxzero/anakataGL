@@ -857,10 +857,10 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
-four-js@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/four-js/-/four-js-1.0.3.tgz#e7e015637e0e86a890f4e751b1c62e9fdbe841e2"
-  integrity sha512-TdC9GgIGbMxb/L5Wq5oPNDHrPtefd+W+mou4ErjiFGiZrenY3EdsYbKC6WcRZasn0qshH5azijTKpEwUFP3l5g==
+four-js@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/four-js/-/four-js-1.1.0.tgz#a5fdc3a259b8b74683257d70fe144c674bf43f88"
+  integrity sha512-tcJw1HrDxfkc7iZJ+vxLj3oTHCBXdpa/WGUnHPM5BHJGgjWTMvxBvOgAQdm9l3sX+vXOIjS+eKTa+uYCkgNh6A==
 
 fs-minipass@^2.0.0, fs-minipass@^2.1.0:
   version "2.1.0"
