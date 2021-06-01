@@ -53,6 +53,7 @@ export default {
         blending: 2,
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -63,6 +64,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     Pentachoron: {
@@ -118,6 +121,7 @@ export default {
         blending: '2',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -128,6 +132,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     Hexadecachoron: {
@@ -183,6 +189,7 @@ export default {
         blending: '2',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -193,6 +200,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     'Icositetrachoron (24-cell)': {
@@ -248,6 +257,7 @@ export default {
         blending: '1',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -258,6 +268,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     'Hecatonicosachoron (120-cell)': {
@@ -313,6 +325,7 @@ export default {
         blending: '2',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -323,6 +336,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     'Hexacosichoron (600-cell)': {
@@ -378,6 +393,7 @@ export default {
         blending: '1',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -388,6 +404,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     'Grand Antiprism': {
@@ -443,6 +461,7 @@ export default {
         blending: '2',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -453,6 +472,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     'Cubic Pyramid': {
@@ -508,6 +529,7 @@ export default {
         blending: '1',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -518,6 +540,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     SolidTesseract: {
@@ -582,6 +606,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     NeonTesseract: {
@@ -637,6 +663,7 @@ export default {
         blending: '2',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -647,6 +674,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     '3-sphere': {
@@ -702,6 +731,7 @@ export default {
         blending: '1',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: false,
@@ -712,6 +742,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     '3-torus': {
@@ -767,6 +799,7 @@ export default {
         blending: '1',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -777,6 +810,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     '3-sphere-edges': {
@@ -832,6 +867,7 @@ export default {
         blending: '2',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -842,6 +878,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     '3-sphere-minecraft': {
@@ -897,6 +935,7 @@ export default {
         blending: '0',
         depthWrite: true,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: false,
@@ -907,6 +946,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     "Klein's Bottle": {
@@ -962,6 +1003,7 @@ export default {
         blending: '2',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -972,6 +1014,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     'Mobius Tube': {
@@ -1027,6 +1071,7 @@ export default {
         blending: '1',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -1037,6 +1082,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
     'Inverted Mobius Tube': {
@@ -1092,6 +1139,7 @@ export default {
         blending: '2',
         depthWrite: false,
         wireframe: false,
+        merged: false,
       },
       4: {
         visible: true,
@@ -1102,6 +1150,8 @@ export default {
       },
       5: {
         visible: false,
+        opacity: 0.25,
+        size: 10,
       },
     },
   },

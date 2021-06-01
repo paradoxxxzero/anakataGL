@@ -1,1 +1,0 @@
-export default "/anakataGL/dist/disc.png";

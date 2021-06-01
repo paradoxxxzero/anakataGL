@@ -1,7 +1,8 @@
 import { GUI } from '../_snowpack/pkg/dat.gui.js'
 import {
-  HyperEdgeGeometry,
+  HyperEdgesGeometry,
   HyperGeometry,
+  HyperGeometryMergedVertices,
   HyperMesh,
   HyperPointsGeometry,
   HyperRenderer,
@@ -24,11 +25,10 @@ import {
   PerspectiveCamera,
   PointLight,
   Points,
-  PointsMaterial,
+  ShaderMaterial,
   Raycaster,
   Scene,
   SubtractiveBlending,
-  TextureLoader,
   Vector2,
   WebGLRenderer,
 } from '../_snowpack/pkg/three.js'
@@ -36,7 +36,6 @@ import { OrbitControls } from '../_snowpack/pkg/three/examples/jsm/controls/Orbi
 import { VertexNormalsHelper } from '../_snowpack/pkg/three/examples/jsm/helpers/VertexNormalsHelper.js'
 import { Axes } from './axes.js'
 import COLORS from './colors.js'
-import disc from './disc.png.proxy.js'
 import presets from './presets.js'
 
 const BLENDINGS = {
@@ -53,7 +52,6 @@ const getPreset = () =>
 const preset = getPreset()
 
 const PLANES = ['xy', 'xz', 'xw', 'yz', 'yw', 'zw']
-const DOT = new TextureLoader().load(disc)
 
 class Main {
   constructor() {
@@ -85,8 +83,8 @@ class Main {
     this.shape = this.getShape()
 
     this.hyperMesh = this.initHyperMesh()
-    this.hyperEdges = this.initHyperEdges()
-    this.hyperPoints = this.initHyperPoints()
+    this.hyperEdges = this.initHyperEdges(this.hyperMesh)
+    this.hyperPoints = this.initHyperPoints(this.hyperMesh)
     this.selectedCells = []
     this.hoveredCell = null
     this.rayCaster = new Raycaster()
@@ -135,7 +133,9 @@ class Main {
     this.camera.add(pointLight)
   }
   initHyperMesh() {
-    const hyperGeometry = new HyperGeometry(
+    const hyperGeometry = new (
+      this.settings.cells.merged ? HyperGeometryMergedVertices : HyperGeometry
+    )(
       this.shape.vertices,
       this.shape.faces,
       this.shape.cells,
@@ -160,11 +160,9 @@ class Main {
     return hyperMesh
   }
 
-  initHyperEdges() {
-    const hyperGeometry = new HyperEdgeGeometry(
-      this.shape.vertices,
-      this.shape.faces,
-      this.shape.cells,
+  initHyperEdges(hyperMesh) {
+    const hyperGeometry = new HyperEdgesGeometry(
+      hyperMesh.hyperGeometry,
       this.hyperRenderer
     )
 
@@ -174,7 +172,6 @@ class Main {
       material.opacity = 0.1
       material.transparent = true
       material.blending = AdditiveBlending
-      material.side = DoubleSide
       material.depthWrite = false
       material.linewidth = 2
       material.color = new Color(colors[i % colors.length])
@@ -186,21 +183,43 @@ class Main {
     return hyperEdges
   }
 
-  initHyperPoints() {
+  initHyperPoints(hyperMesh) {
     const hyperGeometry = new HyperPointsGeometry(
-      this.shape.vertices,
-      this.shape.faces,
-      this.shape.cells,
+      hyperMesh.hyperGeometry,
       this.hyperRenderer
     )
 
     const colors = COLORS[this.settings.colors].slice(1)
     const materials = this.shape.cells.map((_, i) => {
-      const material = new PointsMaterial()
-      material.map = DOT
-      material.size = 0.25
-      material.alphaTest = 0.5
-      material.color = new Color(colors[i % colors.length])
+      const material = new ShaderMaterial({
+        uniforms: {
+          size: { value: 5 },
+          opacity: { value: 0.5 },
+          color: { value: new Color(colors[i % colors.length]) },
+        },
+        vertexShader: `uniform float size;
+        
+        void main() {
+        
+          vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+        
+          gl_PointSize = size * ( 10.0 / - mvPosition.z );
+        
+          gl_Position = projectionMatrix * mvPosition;
+        }`,
+        fragmentShader: `
+        uniform vec3 color;
+        uniform float opacity;
+    
+          void main() {
+          
+            if (length(gl_PointCoord - vec2( 0.5, 0.5 )) > 0.475) discard;
+          
+            gl_FragColor = vec4(color, opacity );
+          } `,
+      })
+      material.transparent = true
+      material.depthWrite = false
       return material
     })
     const hyperPoints = new HyperMesh(hyperGeometry, materials, Points)
@@ -219,8 +238,8 @@ class Main {
 
     this.shape = this.getShape()
     this.hyperMesh = this.initHyperMesh()
-    this.hyperEdges = this.initHyperEdges()
-    this.hyperPoints = this.initHyperPoints()
+    this.hyperEdges = this.initHyperEdges(this.hyperMesh)
+    this.hyperPoints = this.initHyperPoints(this.hyperMesh)
 
     if (this.settings.debug.vertexNormals) {
       this.handleVertex(true)
@@ -421,6 +440,9 @@ class Main {
     cell.add(this.settings.cells, 'blending', BLENDINGS)
     cell.add(this.settings.cells, 'depthWrite')
     cell.add(this.settings.cells, 'wireframe')
+    cell
+      .add(this.settings.cells, 'merged')
+      .onChange(this.switchHyperMesh.bind(this))
     cell.open()
 
     const edge = gui.addFolder('Edge')
@@ -433,6 +455,8 @@ class Main {
 
     const vertice = gui.addFolder('Vertice')
     vertice.add(this.settings.vertices, 'visible')
+    vertice.add(this.settings.vertices, 'opacity', 0, 1)
+    vertice.add(this.settings.vertices, 'size', 0, 100)
 
     const guiDebug = gui.addFolder('Debug')
     guiDebug
@@ -581,6 +605,7 @@ class Main {
       material.blending = +this.settings.cells.blending
       material.transparent = this.settings.cells.opacity < 1
       material.depthWrite = this.settings.cells.depthWrite
+      material.wireframe = this.settings.cells.wireframe
     })
     this.hyperEdges.visible = this.settings.edges.visible
     this.hyperEdges.scale.setScalar(this.settings.scale)
@@ -593,6 +618,10 @@ class Main {
     })
     this.hyperPoints.visible = this.settings.vertices.visible
     this.hyperPoints.scale.setScalar(this.settings.scale)
+    this.hyperPoints.materials.map(material => {
+      material.uniforms.opacity.value = this.settings.vertices.opacity
+      material.uniforms.size.value = this.settings.vertices.size
+    })
   }
 
   render() {
@@ -603,9 +632,7 @@ class Main {
     this.updateSettings()
 
     this.hyperRenderer.rotate(this.settings.rotationSpeed)
-    if (this.hyperMesh.visible) {
-      this.hyperMesh.update()
-    }
+    this.hyperMesh.update()
     if (this.hyperEdges.visible) {
       this.hyperEdges.update()
     }

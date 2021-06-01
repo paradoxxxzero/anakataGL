@@ -1,4 +1,4 @@
-import { r as Matrix3, f as LineSegments, B as BufferGeometry, F as Float32BufferAttribute, b as LineBasicMaterial, V as Vector3 } from '../../../../common/three.module-7c890bff.js';
+import { q as Matrix3, f as LineSegments, B as BufferGeometry, F as Float32BufferAttribute, b as LineBasicMaterial, V as Vector3 } from '../../../../common/three.module-83378522.js';
 
 const _v1 = new Vector3();
 const _v2 = new Vector3();

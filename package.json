@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "start": "snowpack dev",
-    "build": "snowpack build && sed -i 's/\\/dist/\\/anakataGL\\/dist/' docs/dist/disc.png.proxy.js && touch docs/.nojekyll",
+    "build": "snowpack build && touch docs/.nojekyll",
     "format": "prettier --write \"src/**/*.js\"",
     "lint": "prettier --check \"src/**/*.js\""
   },
