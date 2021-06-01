@@ -581,6 +581,7 @@ class Main {
       material.blending = +this.settings.cells.blending
       material.transparent = this.settings.cells.opacity < 1
       material.depthWrite = this.settings.cells.depthWrite
+      material.wireframe = this.settings.cells.wireframe
     })
     this.hyperEdges.visible = this.settings.edges.visible
     this.hyperEdges.scale.setScalar(this.settings.scale)
