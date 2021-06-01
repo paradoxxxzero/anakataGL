@@ -422,7 +422,7 @@ class Main {
     gui.add(this.settings, 'zFov', 0, 180)
     gui.add(this.settings, 'wFov', 0, 180)
     gui.add(this.settings, 'cellSize', 0, 100)
-    gui.add(this.settings, 'scale', 0, 10, 0.1)
+    gui.add(this.settings, 'scale', 0, 20, 0.1)
 
     const rot = gui.addFolder('4d rotation')
     PLANES.forEach(k => {

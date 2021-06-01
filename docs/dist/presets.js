@@ -1,6 +1,6 @@
 export default {
   remembered: {
-    Tesseract: {
+    'Tesseract (8-cell)': {
       0: {
         shape: 'tesseract',
         colors: 'onedarkterminator',
@@ -68,7 +68,7 @@ export default {
         size: 10,
       },
     },
-    Pentachoron: {
+    'Pentachoron (5-cell)': {
       0: {
         shape: 'pentachoron',
         colors: 'material',
@@ -136,7 +136,7 @@ export default {
         size: 10,
       },
     },
-    Hexadecachoron: {
+    'Hexadecachoron (16-cell)': {
       0: {
         shape: 'hexadecachoron',
         colors: 'onedarkterminator',
@@ -678,7 +678,7 @@ export default {
         size: 10,
       },
     },
-    '3-sphere': {
+    'Glome (3-sphere)': {
       0: {
         shape: 'glome',
         colors: 'zenburn',
@@ -746,7 +746,7 @@ export default {
         size: 10,
       },
     },
-    '3-torus': {
+    'Ditorus (3-torus)': {
       0: {
         shape: 'diTorus',
         colors: 'zenburn',
@@ -814,7 +814,7 @@ export default {
         size: 10,
       },
     },
-    '3-sphere-edges': {
+    'Glome edges': {
       0: {
         shape: 'glome',
         colors: 'zenburn',
@@ -882,7 +882,7 @@ export default {
         size: 10,
       },
     },
-    '3-sphere-minecraft': {
+    'Glome minecraft': {
       0: {
         shape: 'glome',
         colors: 'sweetlove',
@@ -1154,8 +1154,144 @@ export default {
         size: 10,
       },
     },
+    'Hecatonicosachoron Spring': {
+      0: {
+        shape: 'hecatonicosachoron',
+        colors: 'onedarkterminator',
+        zFov: 90,
+        wFov: 90,
+        cellSize: 100,
+        scale: 0.6,
+        x: 'cos(v) * cos(u)',
+        y: 'cos(v) * sin(u)',
+        z: 'sin(v) * cos(u)',
+        w: 'sin(v) * sin(u)',
+        uMin: 0,
+        uMax: 6.283,
+        uInclusive: false,
+        uLoop: true,
+        uResolution: 8,
+        vMin: 0,
+        vMax: 6.283,
+        vInclusive: false,
+        vLoop: true,
+        vResolution: 8,
+        wMin: 0,
+        wMax: 6.283,
+        wInclusive: false,
+        wLoop: true,
+        wResolution: 8,
+        withUCells: true,
+        withVCells: true,
+        withWCells: true,
+      },
+      1: {
+        xy: 0,
+        xz: 0,
+        xw: 0,
+        yz: 0,
+        yw: 0,
+        zw: 0,
+      },
+      2: {
+        xy: 2,
+        xz: 3,
+        xw: 5,
+        yz: 7,
+        yw: 11,
+        zw: 13,
+      },
+      3: {
+        visible: true,
+        opacity: 0.7,
+        blending: '5',
+        depthWrite: false,
+        wireframe: false,
+        merged: false,
+      },
+      4: {
+        visible: true,
+        opacity: 0.95,
+        blending: '4',
+        linewidth: 2,
+        depthWrite: false,
+      },
+      5: {
+        visible: true,
+        opacity: 1,
+        size: 5,
+      },
+    },
+    'H4 NightSky': {
+      0: {
+        shape: 'permutahedronH',
+        colors: 'onedarkterminator',
+        zFov: 90,
+        wFov: 90,
+        cellSize: 10,
+        scale: 17.5,
+        x: 'cos(v) * cos(u)',
+        y: 'cos(v) * sin(u)',
+        z: 'sin(v) * cos(u)',
+        w: 'sin(v) * sin(u)',
+        uMin: 0,
+        uMax: 6.283,
+        uInclusive: false,
+        uLoop: true,
+        uResolution: 8,
+        vMin: 0,
+        vMax: 6.283,
+        vInclusive: false,
+        vLoop: true,
+        vResolution: 8,
+        wMin: 0,
+        wMax: 6.283,
+        wInclusive: false,
+        wLoop: true,
+        wResolution: 8,
+        withUCells: true,
+        withVCells: true,
+        withWCells: true,
+      },
+      1: {
+        xy: 0,
+        xz: 0,
+        xw: 0,
+        yz: 0,
+        yw: 0,
+        zw: 0,
+      },
+      2: {
+        xy: 2,
+        xz: 3,
+        xw: 5,
+        yz: 7,
+        yw: 11,
+        zw: 13,
+      },
+      3: {
+        visible: true,
+        opacity: 1,
+        blending: '0',
+        depthWrite: true,
+        wireframe: false,
+        merged: false,
+      },
+      4: {
+        visible: true,
+        opacity: 1,
+        blending: '4',
+        linewidth: 2,
+        depthWrite: false,
+      },
+      5: {
+        visible: false,
+        opacity: 1,
+        size: 5,
+      },
+    },
   },
-  preset: 'Tesseract',
+  preset: 'Tesseract (8-cell)',
   closed: false,
   folders: {
     '4d rotation': {
