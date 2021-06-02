@@ -300,7 +300,7 @@ class Main {
         1000
       ),
       size: 100,
-      axes: new Axes(this.hyperRenderer, 2),
+      axes: new Axes(this.hyperRenderer, 1, [0, 1.6, -3]),
     }
 
     axes.scene.add(axes.axes.group)

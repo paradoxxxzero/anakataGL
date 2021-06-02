@@ -7,7 +7,7 @@ import {
 } from 'three'
 
 export class Axes {
-  constructor(hyperRenderer, u) {
+  constructor(hyperRenderer, u, origin) {
     this.width = 1.5
     this.hyperRenderer = hyperRenderer
     this.u = u || 1
@@ -33,7 +33,7 @@ export class Axes {
         color: 0xff00ff,
       },
     ]
-    this.origin = [0, 0, 0, 0]
+    this.origin = origin
     this.group = new Group()
     this.init()
   }
@@ -47,7 +47,7 @@ export class Axes {
       axis.geometry = new BufferGeometry()
       axis.geometry.name = `${axis.name} axis`
       const points = []
-      points.push(...this.hyperRenderer.project(this.origin))
+      points.push(...this.origin)
       points.push(...this.hyperRenderer.project(axis.v))
       axis.geometry.setAttribute(
         'position',
