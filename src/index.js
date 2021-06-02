@@ -180,6 +180,7 @@ class Main {
       material.shininess = 0
       material.envMap = this.texture
       material.reflectivity = 0
+      material.refractionRatio = 0
       material.color = new Color(colors[i % colors.length])
       return material
     })
@@ -378,9 +379,17 @@ class Main {
             ['generateUVSurface', 'generateUVWHyperSurface'].includes(name)
         )
       )
-      .onChange(this.switchHyperMesh.bind(this))
+      .onChange(v => {
+        uvw[v.startsWith('generate') ? 'show' : 'hide']()
+        this.controls.reset()
+        this.controls.target.set(0, 1.6, -3)
+        this.controls.update()
+        this.switchHyperMesh()
+      })
 
     const uvw = gui.addFolder('uvw')
+    uvw.open()
+    uvw[this.settings.shape.startsWith('generate') ? 'show' : 'hide']()
     uvw
       .add(this.settings, 'x', 'cos(v) * cos(u)')
       .onChange(this.switchHyperMesh.bind(this))
@@ -491,7 +500,7 @@ class Main {
     cell
       .add(this.settings.cells, 'reflectivity', 0, 1, 0.01)
       .onChange(reconstructMeshIfMaterialNeedChange)
-    cell.add(this.settings.cells, 'refraction').onChange(v => {
+    cell.add(this.settings.cells, 'refraction', 0, 1, 0.01).onChange(v => {
       this.texture.mapping = v ? CubeRefractionMapping : CubeReflectionMapping
       this.hyperMesh.materials.forEach(m => {
         m.needsUpdate = true
@@ -672,6 +681,7 @@ class Main {
       material.blending = +this.settings.cells.blending
       material.shininess = this.settings.cells.shininess
       material.reflectivity = this.settings.cells.reflectivity
+      material.refractionRatio = this.settings.cells.refraction
       material.transparent = this.settings.cells.opacity < 1
       material.depthWrite = this.settings.cells.depthWrite
       material.wireframe = this.settings.cells.wireframe
