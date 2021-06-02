@@ -94,4 +94,5 @@ export default {
     '#585c49',
     '#978965',
   ],
+  bridge: ['image', '#ffffff'],
 }
