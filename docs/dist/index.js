@@ -18,7 +18,9 @@ import {
   Group,
   LineBasicMaterial,
   LineSegments,
+  CubeTextureLoader,
   MeshLambertMaterial,
+  MeshPhongMaterial,
   MultiplyBlending,
   NoBlending,
   NormalBlending,
@@ -31,6 +33,9 @@ import {
   SubtractiveBlending,
   Vector2,
   WebGLRenderer,
+  CubeRefractionMapping,
+  sRGBEncoding,
+  CubeReflectionMapping,
 } from '../_snowpack/pkg/three.js'
 import { OrbitControls } from '../_snowpack/pkg/three/examples/jsm/controls/OrbitControls.js'
 import { VertexNormalsHelper } from '../_snowpack/pkg/three/examples/jsm/helpers/VertexNormalsHelper.js'
@@ -55,7 +60,8 @@ const PLANES = ['xy', 'xz', 'xw', 'yz', 'yw', 'zw']
 
 class Main {
   constructor() {
-    const remembered = presets.remembered[preset]
+    const remembered =
+      presets.remembered[preset] || Object.values(presets.remembered)[0]
     this.settings = {
       ...remembered[0],
       rotation: remembered[1],
@@ -81,6 +87,21 @@ class Main {
     this.controls = this.initControls()
     this.initLights()
     this.shape = this.getShape()
+
+    const loader = new CubeTextureLoader()
+    loader.setPath('envmap/')
+
+    this.texture = loader.load([
+      'posx.jpg',
+      'negx.jpg',
+      'posy.jpg',
+      'negy.jpg',
+      'posz.jpg',
+      'negz.jpg',
+    ])
+    this.texture.encoding = sRGBEncoding
+
+    // this.scene.background = this.texture
 
     this.hyperMesh = this.initHyperMesh()
     this.hyperEdges = this.initHyperEdges(this.hyperMesh)
@@ -130,6 +151,7 @@ class Main {
     this.scene.add(ambientLight)
 
     const pointLight = new PointLight(0xffffff, 1)
+    pointLight.position.set(-1, 2.8, 2)
     this.camera.add(pointLight)
   }
   initHyperMesh() {
@@ -142,14 +164,23 @@ class Main {
       this.hyperRenderer
     )
     const colors = COLORS[this.settings.colors].slice(1)
+    const MeshMaterial =
+      this.settings.cells.shininess || this.settings.cells.reflectivity
+        ? MeshPhongMaterial
+        : MeshLambertMaterial
+
     const materials = this.shape.cells.map((_, i) => {
-      const material = new MeshLambertMaterial()
+      const material = new MeshMaterial()
       material.opacity = 0.1
       material.transparent = true
       material.blending = AdditiveBlending
       material.side = DoubleSide
       material.depthWrite = false
       material.wireframe = false
+      material.shininess = 0
+      material.envMap = this.texture
+      material.reflectivity = 0
+      material.refractionRatio = 0
       material.color = new Color(colors[i % colors.length])
       return material
     })
@@ -229,6 +260,9 @@ class Main {
   }
 
   switchHyperMesh() {
+    if (this.reverting) {
+      return
+    }
     if (this.settings.debug.vertexNormals) {
       this.handleVertex(false)
     }
@@ -300,7 +334,7 @@ class Main {
         1000
       ),
       size: 100,
-      axes: new Axes(this.hyperRenderer, 2),
+      axes: new Axes(this.hyperRenderer, 1, [0, 1.6, -3]),
     }
 
     axes.scene.add(axes.axes.group)
@@ -345,9 +379,17 @@ class Main {
             ['generateUVSurface', 'generateUVWHyperSurface'].includes(name)
         )
       )
-      .onChange(this.switchHyperMesh.bind(this))
+      .onChange(v => {
+        uvw[v.startsWith('generate') ? 'show' : 'hide']()
+        this.controls.reset()
+        this.controls.target.set(0, 1.6, -3)
+        this.controls.update()
+        this.switchHyperMesh()
+      })
 
     const uvw = gui.addFolder('uvw')
+    uvw.open()
+    uvw[this.settings.shape.startsWith('generate') ? 'show' : 'hide']()
     uvw
       .add(this.settings, 'x', 'cos(v) * cos(u)')
       .onChange(this.switchHyperMesh.bind(this))
@@ -434,10 +476,36 @@ class Main {
     })
     rotSpeed.open()
 
+    const reconstructMeshIfMaterialNeedChange = () => {
+      const testMat = this.hyperMesh.materials[0]
+      if (
+        (testMat.constructor.name === 'MeshLambertMaterial' &&
+          (this.settings.cells.shininess ||
+            this.settings.cells.reflectivity)) ||
+        (testMat.constructor.name === 'MeshPhongMaterial' &&
+          !this.settings.cells.shininess &&
+          !this.settings.cells.reflectivity)
+      ) {
+        this.switchHyperMesh()
+      }
+    }
+
     const cell = gui.addFolder('Cell')
     cell.add(this.settings.cells, 'visible')
     cell.add(this.settings.cells, 'opacity', 0, 1)
     cell.add(this.settings.cells, 'blending', BLENDINGS)
+    cell
+      .add(this.settings.cells, 'shininess', 0, 150)
+      .onChange(reconstructMeshIfMaterialNeedChange)
+    cell
+      .add(this.settings.cells, 'reflectivity', 0, 1, 0.01)
+      .onChange(reconstructMeshIfMaterialNeedChange)
+    cell.add(this.settings.cells, 'refraction', 0, 1, 0.01).onChange(v => {
+      this.texture.mapping = v ? CubeRefractionMapping : CubeReflectionMapping
+      this.hyperMesh.materials.forEach(m => {
+        m.needsUpdate = true
+      })
+    })
     cell.add(this.settings.cells, 'depthWrite')
     cell.add(this.settings.cells, 'wireframe')
     cell
@@ -470,16 +538,23 @@ class Main {
     gui.remember(this.settings.edges)
     gui.remember(this.settings.vertices)
 
-    gui.revert()
     gui.__preset_select.addEventListener('change', ({ target: { value } }) => {
       location.hash = `#${encodeURIComponent(value)}`
     })
     window.addEventListener('hashchange', () => {
-      gui.preset = getPreset()
-      gui.revert()
+      if (gui.preset !== getPreset()) {
+        gui.preset = getPreset()
+      }
     })
     if (window.innerWidth < 600) {
       gui.close()
+    }
+    const oldRevert = gui.revert.bind(gui)
+    gui.revert = () => {
+      this.reverting = true
+      oldRevert()
+      this.reverting = false
+      this.switchHyperMesh()
     }
     return gui
   }
@@ -593,6 +668,7 @@ class Main {
       this.camera.updateProjectionMatrix()
       this.axes.camera.updateProjectionMatrix()
     }
+
     this.hyperRenderer.fov = (this.settings.wFov * Math.PI) / 180
     this.hyperMesh.cellSize =
       this.hyperEdges.cellSize =
@@ -603,6 +679,9 @@ class Main {
     this.hyperMesh.materials.map(material => {
       material.opacity = this.settings.cells.opacity
       material.blending = +this.settings.cells.blending
+      material.shininess = this.settings.cells.shininess
+      material.reflectivity = this.settings.cells.reflectivity
+      material.refractionRatio = this.settings.cells.refraction
       material.transparent = this.settings.cells.opacity < 1
       material.depthWrite = this.settings.cells.depthWrite
       material.wireframe = this.settings.cells.wireframe
@@ -648,7 +727,14 @@ class Main {
     // Rendering
 
     // Render scene
-    this.renderer.setClearColor(COLORS[this.settings.colors][0], 1)
+    let clearColor = COLORS[this.settings.colors][0]
+    if (clearColor === 'image') {
+      clearColor = 0
+      this.scene.background = this.texture
+    } else {
+      this.scene.background = null
+    }
+    this.renderer.setClearColor(clearColor || 0x000000, 1)
     this.renderer.setViewport(0, 0, window.innerWidth, window.innerHeight)
     this.renderer.render(this.scene, this.camera)
 
