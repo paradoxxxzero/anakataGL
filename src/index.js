@@ -259,6 +259,9 @@ class Main {
   }
 
   switchHyperMesh() {
+    if (this.reverting) {
+      return
+    }
     if (this.settings.debug.vertexNormals) {
       this.handleVertex(false)
     }
@@ -526,16 +529,23 @@ class Main {
     gui.remember(this.settings.edges)
     gui.remember(this.settings.vertices)
 
-    gui.revert()
     gui.__preset_select.addEventListener('change', ({ target: { value } }) => {
       location.hash = `#${encodeURIComponent(value)}`
     })
     window.addEventListener('hashchange', () => {
-      gui.preset = getPreset()
-      gui.revert()
+      if (gui.preset !== getPreset()) {
+        gui.preset = getPreset()
+      }
     })
     if (window.innerWidth < 600) {
       gui.close()
+    }
+    const oldRevert = gui.revert.bind(gui)
+    gui.revert = () => {
+      this.reverting = true
+      oldRevert()
+      this.reverting = false
+      this.switchHyperMesh()
     }
     return gui
   }
