@@ -101,8 +101,7 @@ class Main {
     ])
     this.texture.encoding = sRGBEncoding
 
-    // this.scene.background = this.texture
-
+    this.gui = this.initGui()
     this.hyperMesh = this.initHyperMesh()
     this.hyperEdges = this.initHyperEdges(this.hyperMesh)
     this.hyperPoints = this.initHyperPoints(this.hyperMesh)
@@ -110,7 +109,6 @@ class Main {
     this.hoveredCell = null
     this.rayCaster = new Raycaster()
     this.axes = this.initAxes()
-    this.gui = this.initGui()
 
     this.setupDom()
   }
