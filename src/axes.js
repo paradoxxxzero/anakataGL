@@ -4,6 +4,7 @@ import {
   Group,
   Line,
   LineBasicMaterial,
+  Vector3,
 } from 'three'
 
 export class Axes {
@@ -33,7 +34,7 @@ export class Axes {
         color: 0xff00ff,
       },
     ]
-    this.origin = origin
+    this.origin = new Vector3(...origin)
     this.group = new Group()
     this.init()
   }
@@ -47,8 +48,12 @@ export class Axes {
       axis.geometry = new BufferGeometry()
       axis.geometry.name = `${axis.name} axis`
       const points = []
-      points.push(...this.origin)
-      points.push(...this.hyperRenderer.project(axis.v))
+      points.push(...this.origin.toArray())
+      points.push(
+        ...new Vector3(...this.hyperRenderer.project(axis.v))
+          .add(this.origin)
+          .toArray()
+      )
       axis.geometry.setAttribute(
         'position',
         new Float32BufferAttribute(points, 3)
@@ -62,7 +67,9 @@ export class Axes {
     this.axes.forEach(axis => {
       axis.line.geometry.attributes.position.setXYZ(
         1,
-        ...this.hyperRenderer.project(axis.v)
+        ...new Vector3(...this.hyperRenderer.project(axis.v))
+          .add(this.origin)
+          .toArray()
       )
       axis.line.geometry.attributes.position.needsUpdate = true
     })
