@@ -1,7 +1,7 @@
 import { GUI } from 'dat.gui'
 import {
   HyperMesh,
-  HyperRenderer,
+  HyperRendererCached,
   shapes,
   normalizeShape,
   HyperSlice,
@@ -28,7 +28,6 @@ import {
   Raycaster,
   Scene,
   SubtractiveBlending,
-  Vector2,
   WebGLRenderer,
   sRGBEncoding,
   MeshBasicMaterial,
@@ -115,7 +114,7 @@ class Main {
     this.scene = new Scene()
 
     this.renderer = this.initRenderer()
-    this.hyperRenderer = new HyperRenderer(
+    this.hyperRenderer = new HyperRendererCached(
       (this.settings.wFov * Math.PI) / 180,
       5,
       this.settings.rotation

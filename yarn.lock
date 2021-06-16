@@ -857,10 +857,10 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
-four-js@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/four-js/-/four-js-2.0.0.tgz#231c5c56c164adf74ee06c3694592f4e21755a60"
-  integrity sha512-7x4UnYx8LChG7uVPPfeQmohobWc12FnY0DwjpS65qJaRNnuWANOxbOYkyLmI58Mq7wo+TGHqvpAuJMqYfoazMA==
+four-js@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/four-js/-/four-js-2.0.1.tgz#626b2f004bac2557d79befe393c855f63dd99801"
+  integrity sha512-Dd8Qhyh9XSTf3VSlZ4KfP4Fe7G9P/qPayfeeFDWKjhXAMm1PBYLCsufd74g7Dm5kHmKchXT/yzBrpKK/rpsriw==
 
 fs-minipass@^2.0.0, fs-minipass@^2.1.0:
   version "2.1.0"
@@ -1554,9 +1554,9 @@ npm-normalize-package-bin@^1.0.1:
   integrity sha512-EPfafl6JL5/rU+ot6P3gRSCpPDW5VmIzX959Ob1+ySFUuuYHWHekXpwdUZcKP5C+DS4GEtdJluwBjnsNDl+fSA==
 
 npm-package-arg@^8.0.0, npm-package-arg@^8.0.1, npm-package-arg@^8.1.2:
-  version "8.1.4"
-  resolved "https://registry.yarnpkg.com/npm-package-arg/-/npm-package-arg-8.1.4.tgz#8001cdbc4363997b8ef6c6cf7aaf543c5805879d"
-  integrity sha512-xLokoCFqj/rPdr3LvcdDL6Kj6ipXGEDHD/QGpzwU6/pibYUOXmp5DBmg76yukFyx4ZDbrXNOTn+BPyd8TD4Jlw==
+  version "8.1.5"
+  resolved "https://registry.yarnpkg.com/npm-package-arg/-/npm-package-arg-8.1.5.tgz#3369b2d5fe8fdc674baa7f1786514ddc15466e44"
+  integrity sha512-LhgZrg0n0VgvzVdSm1oiZworPbTxYHUJCgtsJW8mGvlDpxTM1vSJc3m5QZeUkhAHIzbz3VCHd/R4osi1L1Tg/Q==
   dependencies:
     hosted-git-info "^4.0.1"
     semver "^7.3.4"
@@ -2031,10 +2031,10 @@ smart-buffer@^4.1.0:
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.1.0.tgz#91605c25d91652f4661ea69ccf45f1b331ca21ba"
   integrity sha512-iVICrxOzCynf/SNaBQCw34eM9jROU/s5rzIhpOvzhzuYHfJR/DhZfDkXiZSgKXfgv26HT3Yni3AV/DGw0cGnnw==
 
-snowpack@^3.5.7:
-  version "3.5.7"
-  resolved "https://registry.yarnpkg.com/snowpack/-/snowpack-3.5.7.tgz#1d56a273c97e6f8fe23800f4d3c641eefb65f356"
-  integrity sha512-mMdbG9vSs7JL69/Zk2VtpduBnbfzCCCXvhJeX4GzPg4aYyKtfs0s6MA5VoQbN9HL6lZpKRy/knaigKcC4E29GA==
+snowpack@^3.5.8:
+  version "3.5.8"
+  resolved "https://registry.yarnpkg.com/snowpack/-/snowpack-3.5.8.tgz#2132cca27e593aee619df671dcc68290c0b68889"
+  integrity sha512-o0oyNpjnmFywPPgNhVt8ofa2RPBQqScxnFNbf15H9B+sH5UyrgYmy4qeJAnipsQqT9CT7i9Mx2Q5Ccm5vlfHSQ==
   dependencies:
     cli-spinners "^2.5.0"
     default-browser-id "^2.0.0"

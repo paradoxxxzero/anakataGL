@@ -6,6 +6,7 @@ import {
   LineBasicMaterial,
   Vector3,
 } from 'three'
+import { HyperRenderer } from 'four-js'
 
 export class Axes {
   constructor(hyperRenderer, u, origin) {
@@ -50,7 +51,9 @@ export class Axes {
       const points = []
       points.push(...this.origin.toArray())
       points.push(
-        ...new Vector3(...this.hyperRenderer.project(axis.v))
+        ...new Vector3(
+          ...HyperRenderer.prototype.project.call(this.hyperRenderer, axis.v)
+        )
           .add(this.origin)
           .toArray()
       )
@@ -67,7 +70,9 @@ export class Axes {
     this.axes.forEach(axis => {
       axis.line.geometry.attributes.position.setXYZ(
         1,
-        ...new Vector3(...this.hyperRenderer.project(axis.v))
+        ...new Vector3(
+          ...HyperRenderer.prototype.project.call(this.hyperRenderer, axis.v)
+        )
           .add(this.origin)
           .toArray()
       )

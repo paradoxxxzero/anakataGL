@@ -15,7 +15,7 @@
   "dependencies": {
     "codemirror": "^5.61.1",
     "dat.gui": "^0.7.7",
-    "four-js": "^2.0.0",
+    "four-js": "^2.0.1",
     "stats.js": "^0.17.0",
     "three": "^0.128.0"
   },
@@ -25,7 +25,7 @@
     "eslint-plugin-import": "^2.23.4",
     "eslint-plugin-prettier": "^3.4.0",
     "prettier": "^2.3.1",
-    "snowpack": "^3.5.7"
+    "snowpack": "^3.5.8"
   },
   "version": "0.2.0"
 }
