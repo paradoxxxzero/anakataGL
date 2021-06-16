@@ -97,7 +97,18 @@ export default {
   rainbow: ['#000000'].concat(
     new Array(64).fill().map((_, i) => `hsl(${(i * 29) % 360}, 40%, 50%)`)
   ),
-  bridge: ['image', '#ffffff'],
+  primaries: [
+    '#222222',
+    '#ff0000',
+    '#0000ff',
+    '#00ff00',
+    '#ff00ff',
+    '#ffff00',
+    '#00ffff',
+    '#000000',
+    '#ffffff',
+  ],
+  white: ['#000000', '#ffffff'],
   aap: [
     '#141013',
     '#3b1725',
