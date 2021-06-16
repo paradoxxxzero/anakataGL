@@ -111,6 +111,7 @@ class Main {
     this.texture = this.initTexture()
 
     this.stats = new Stats()
+    this.showStats = false
     this.scene = new Scene()
 
     this.renderer = this.initRenderer()
@@ -559,6 +560,10 @@ class Main {
       this.hyperMesh.scale.setScalar(v)
     })
 
+    main
+      .add(this, 'showStats')
+      .onChange(v => this.stats.showPanel(v ? 0 : null))
+
     const transformations = gui.addFolder('Transformations')
     const rot = transformations.addFolder('4d rotation')
     PLANES.forEach(k => {
@@ -789,6 +794,7 @@ class Main {
     document.body.style.overflow = 'hidden'
     document.body.appendChild(this.renderer.domElement)
     document.body.appendChild(this.stats.dom)
+    this.stats.showPanel(null)
     window.addEventListener('resize', this.onResize.bind(this), false)
   }
 
@@ -801,7 +807,7 @@ class Main {
   }
 
   render() {
-    this.stats.update()
+    this.showStats && this.stats.update()
 
     this.hyperRenderer.rotate(this.settings.rotationSpeed)
     if (this.settings.mode === 'cross-section') {
