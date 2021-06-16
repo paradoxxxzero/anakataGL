@@ -2379,7 +2379,7 @@ export default {
       },
     },
   },
-  preset: 'Ditorus (3-torus)',
+  preset: 'Tesseract (8-cell)',
   closed: false,
   folders: {
     'Main config': {
