@@ -39,7 +39,7 @@ import {
   EquirectangularRefractionMapping,
   MixOperation,
 } from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { Axes } from './axes'
 import COLORS from './colors'
 import presets from './presets'
@@ -80,6 +80,7 @@ const PROPS_FOR_MATERIALS = {
     'transmission',
     'clearcoat',
     'clearcoatRoughness',
+    'thickness',
   ],
   standard: ['refractionRatio', 'metalness', 'roughness'],
 }
@@ -218,6 +219,7 @@ class Main {
         'transmission',
         'clearcoat',
         'clearcoatRoughness',
+        'thickness',
       ]
         .filter(key =>
           PROPS_FOR_MATERIALS[this.settings.cells.material].includes(key)
@@ -667,6 +669,9 @@ class Main {
       .onChange(updateMaterial('faces'))
     cells
       .add(this.settings.cells, 'clearcoatRoughness', 0, 1, 0.01)
+      .onChange(updateMaterial('faces'))
+    cells
+      .add(this.settings.cells, 'thickness', 0, 1, 0.01)
       .onChange(updateMaterial('faces'))
     cells
       .add(this.settings.cells, 'depthWrite')
